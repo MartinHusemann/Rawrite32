@@ -284,7 +284,7 @@ BOOL CRawrite32Dlg::OnInitDialog()
       m_drives.AddString(name);
     }
   }
-  m_drives.SetCurSel(0);
+  m_drives.SetCurSel(m_drives.GetCount()-1);
 
   if (m_imageName)
     GetDlgItem(IDC_IMAGE_NAME)->SetWindowText(m_imageName);
@@ -419,9 +419,6 @@ void CRawrite32Dlg::OnNewImage()
     CloseHandle(hMap);
   }
   CloseHandle(hFile);
-
-  if (VerifyInput() && m_drives.GetCount() == 1)
-    PostMessage(WM_COMMAND, MAKEWPARAM(IDC_WRITE_DISK, BN_CLICKED), (LPARAM)::GetDlgItem(m_hWnd, IDC_WRITE_DISK));
 }
 
 static BOOL SkipGzipHeader(LPBYTE & inputData, DWORD & inputSize)
