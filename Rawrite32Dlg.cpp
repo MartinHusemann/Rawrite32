@@ -613,7 +613,7 @@ void CRawrite32Dlg::OnWriteImage()
       return;
     }
     DWORD bytes = 0;
-    if (DeviceIoControl(theDrive, FSCTL_LOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL) != 0) {
+    if (DeviceIoControl(theDrive, FSCTL_LOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL) == 0) {
       AfxMessageBox(IDP_CANT_LOCK_DISK);
       CloseHandle(theDrive);
       return;
