@@ -94,10 +94,11 @@ BEGIN
     IDS_MESSAGE_COMPRESSED  "Compressed files system image: %s\r\nMD5: %s\r\nUncompressed size: %ld byte\r\nMD5 of contents: %s\r\n"
     IDP_DEVENUM_FAILED      "Could not enumerate available disk devices!"
     IDP_ARE_YOU_SURE        "Are you sure you would like to write the loaded image to drive %s ?\r\nATTENTION: this will destroy all contents of the disk in that drive!"
-    IDP_NO_DISK             "Could not access device!\r\nMake sure a medium is inserted and you have administrative privileges.\r\nNote: this program does only work on Windows NT/Windows 2000!"
+    IDP_NO_DISK             "Could not access device!\r\nMake sure a medium is inserted and you have administrative privileges."
     IDP_WRITE_ERROR         "Error writing to disk!"
     IDS_SUCCESS             "\r\nImage successfully written to disk."
     IDP_NO_VXD              "Internal error: could not connect to vwin32.vxd!"
+    IDP_CANT_LOCK_DISK      "Can not lock drive for exclusive access!"
 END
 
 STRINGTABLE 

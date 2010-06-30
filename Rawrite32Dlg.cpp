@@ -1,10 +1,10 @@
 /*	$Id$	*/
 
 /*-
- * Copyright (c) 2000-2003 The NetBSD Foundation, Inc.
+ * Copyright (c) 2000-2003,2010 The NetBSD Foundation, Inc.
  * All rights reserved.
  *
- * Copyright (c) 2000-2003 Martin Husemann <martin@duskware.de>.
+ * Copyright (c) 2000-2003,2010 Martin Husemann <martin@duskware.de>.
  * All rights reserved.
  * 
  * This code was developed by Martin Husemann for the benefit of
@@ -15,10 +15,7 @@
  * are met:
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. The name of the author may not be used to endorse or promote products
+ * 2. The name of the author may not be used to endorse or promote products
  *    derived from this software withough specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE NETBSD FOUNDATION, INC. AND CONTRIBUTORS
@@ -37,6 +34,8 @@
 #include "stdafx.h"
 #include "Rawrite32.h"
 #include "Rawrite32Dlg.h"
+
+#include <winioctl.h>
 
 extern "C" {
 #include "zlib/zlib.h"
@@ -266,12 +265,17 @@ BOOL CRawrite32Dlg::OnInitDialog()
   RegisterDragDrop(m_hWnd, dt);
   dt->Release();
 
-  TCHAR allDrives[32*4 + 10];
+  TCHAR allDrives[32*4 + 10], winDir[MAX_PATH], sysDir[MAX_PATH];
   GetLogicalDriveStrings(sizeof allDrives/sizeof allDrives[0], allDrives);
+  GetWindowsDirectory(winDir, MAX_PATH);
+  GetSystemDirectory(sysDir, MAX_PATH);
 
   LPCTSTR drive;
   m_drives.ResetContent();
   for (drive = allDrives; *drive; drive += _tcslen(drive)+1) {
+    // exclude the main disk from our list to avoid catastrophic disasters
+    if (winDir[1] == ':' && _toupper(winDir[0]) == _toupper(drive[0])) continue;
+    if (sysDir[1] == ':' && _toupper(sysDir[0]) == _toupper(drive[0])) continue;
     DWORD type = GetDriveType(drive);
     if (type != DRIVE_CDROM && type != DRIVE_RAMDISK) {
       TCHAR name[4];
@@ -603,9 +607,15 @@ void CRawrite32Dlg::OnWriteImage()
     // Windows NT does it the UNIX way...
     CString internalName;
     internalName.Format(_T("\\\\.\\%s"), drive);
-    HANDLE theDrive = CreateFile(internalName, GENERIC_ALL, /*FILE_SHARE_READ|FILE_SHARE_WRITE*/0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    HANDLE theDrive = CreateFile(internalName, GENERIC_ALL, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (theDrive == INVALID_HANDLE_VALUE) {
       AfxMessageBox(IDP_NO_DISK);
+      return;
+    }
+    DWORD bytes = 0;
+    if (DeviceIoControl(theDrive, FSCTL_LOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL) != 0) {
+      AfxMessageBox(IDP_CANT_LOCK_DISK);
+      CloseHandle(theDrive);
       return;
     }
 
@@ -623,6 +633,7 @@ void CRawrite32Dlg::OnWriteImage()
       m_output += msg;
       UpdateData(FALSE);
     }
+    DeviceIoControl(theDrive, FSCTL_UNLOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL);
     CloseHandle(theDrive);
   }
 }

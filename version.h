@@ -1,10 +1,10 @@
 /*	$Id$	*/
 
 /*-
- * Copyright (c) 2000-2003 The NetBSD Foundation, Inc.
+ * Copyright (c) 2000-2003,2010 The NetBSD Foundation, Inc.
  * All rights reserved.
  *
- * Copyright (c) 2000-2003 Martin Husemann <martin@duskware.de>.
+ * Copyright (c) 2000-2003,2010 Martin Husemann <martin@duskware.de>.
  * All rights reserved.
  * 
  * This code was developed by Martin Husemann for the benefit of
@@ -15,10 +15,7 @@
  * are met:
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. The name of the author may not be used to endorse or promote products
+ * 2. The name of the author may not be used to endorse or promote products
  *    derived from this software withough specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE NETBSD FOUNDATION, INC. AND CONTRIBUTORS
@@ -34,6 +31,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define VERSION_AS_STRING       "1.0.1.3"
-#define VERSION_AS_RESOURCE     1,0,1,3
-#define VERSION_AS_SENTENCE     "Rawrite32 Version 1.0.1.3"
+#define VERSION_AS_STRING       "1.0.2.0"
+#define VERSION_AS_RESOURCE     1,0,2,0
+#define VERSION_AS_SENTENCE     "Rawrite32 Version 1.0.2.0"

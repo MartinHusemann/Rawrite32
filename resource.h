@@ -20,6 +20,7 @@
 #define IDS_START_HINT                  113
 #define IDP_BAD_SKIP                    114
 #define IDS_HELP_URL                    115
+#define IDP_CANT_LOCK_DISK              116
 #define IDR_MAINFRAME                   128
 #define IDC_WRITE_DISK                  1000
 #define IDC_IMAGE_NAME                  1001
