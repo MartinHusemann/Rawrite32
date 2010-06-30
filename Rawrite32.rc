@@ -1,0 +1,114 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "version.rc"
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\Rawrite32.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_RAWRITE32_DIALOG DIALOGEX 0, 0, 320, 200
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "NetBSD Disk Image Tool"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "Filesystem &image:",IDC_STATIC,7,7,220,10
+    EDITTEXT        IDC_IMAGE_NAME,7,18,262,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Select...",IDC_BROWSE,276,18,37,14
+    LTEXT           "Program &messages:",IDC_STATIC,7,41,222,10
+    LTEXT           "",IDC_OUTPUT,7,53,306,100,SS_SUNKEN
+    LTEXT           "&Target drive:",IDC_STATIC,7,158,50,12
+    COMBOBOX        IDC_DRIVES,61,156,85,58,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Sector s&kip:",IDC_STATIC,160,158,47,12
+    EDITTEXT        IDC_SECTOR_SKIP,212,156,56,12,ES_AUTOHSCROLL
+    LTEXT           "x 512 Byte",IDC_STATIC,275,158,38,12
+    PUSHBUTTON      "&Write to disk...",IDC_WRITE_DISK,45,179,66,14,
+                    WS_DISABLED
+    DEFPUSHBUTTON   "Exit",IDOK,127,179,66,14
+    PUSHBUTTON      "Help",ID_HELP,209,179,66,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_RAWRITE32_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 313
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 193
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "&About Rawrite32..."
+    IDS_OPEN_IMAGE_FILTER   "(Compressed) fs images (*.fs.gz, *.fs)|*.fs.gz;*.fs|Binary images (*.bin)|*.bin|All files (*.*)|*.*||"
+    IDS_OPEN_IMAGE_TITLE    "Open a file system image"
+    IDS_MESSAGE_UNCOMPRESSED 
+                            "File system image: %s\r\nMD5: %s\r\nSize: %ld byte\r\n"
+    IDS_MESSAGE_COMPRESSED  "Compressed files system image: %s\r\nMD5: %s\r\nUncompressed size: %ld byte\r\nMD5 of contents: %s\r\n"
+    IDP_DEVENUM_FAILED      "Could not enumerate available disk devices!"
+    IDP_ARE_YOU_SURE        "Are you sure you would like to write the loaded image to drive %s ?\r\nATTENTION: this will destroy all contents of the disk in that drive!"
+    IDP_NO_DISK             "Could not access device!\r\nMake sure a medium is inserted and you have administrative privileges.\r\nNote: this program does only work on Windows NT/Windows 2000!"
+    IDP_WRITE_ERROR         "Error writing to disk!"
+    IDS_SUCCESS             "\r\nImage successfully written to disk."
+    IDP_NO_VXD              "Internal error: could not connect to vwin32.vxd!"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_HOME_URL            "http://www.duskware.com/rawrite32"
+    IDS_START_HINT          "Select a filesystem image (and optional a target drive)."
+    IDP_BAD_SKIP            "Illegal sector skip Value!"
+    IDS_HELP_URL            "help/Rawrite32.htm"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
