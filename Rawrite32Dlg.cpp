@@ -631,6 +631,7 @@ void CRawrite32Dlg::OnWriteImage()
       UpdateData(FALSE);
     }
     DeviceIoControl(theDrive, FSCTL_UNLOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL);
+    DeviceIoControl(theDrive, IOCTL_DISK_UPDATE_PROPERTIES, NULL, 0, NULL, 0, &bytes, NULL);
     CloseHandle(theDrive);
   }
 }
