@@ -610,7 +610,7 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
     m_fsImage = (const BYTE *)MapViewOfFile(m_inputMapping, FILE_MAP_READ, 0, 0, m_fsImageSize);
     if (m_fsImage) {
       CString hashValues;
-      CalcHashes(m_fsImage, m_fsImageSize, hashValues);
+      CalcHashes(hashValues);
       m_output.Format(IDS_MESSAGE_INPUT_HASHES, m_imageName, hashValues, m_fsImageSize);
       // show message
       UpdateData(FALSE);
@@ -637,15 +637,6 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
   }
 
   return m_fsImage != NULL;
-}
-
-void CRawrite32Dlg::CalcHashes(const BYTE *data, size_t nbytes, CString &out)
-{
-  CString t;
-  CalcMD5(data, nbytes, t); out = "MD5: " + t;
-  CalcSHA1(data, nbytes, t); out += "\r\nSHA1: " + t;
-  CalcSHA256(data, nbytes, t); out += "\r\nSHA256: " + t;
-  CalcSHA512(data, nbytes, t); out += "\r\nSHA512: " + t;
 }
 
 bool CRawrite32Dlg::VerifyInput()
@@ -677,4 +668,57 @@ done:
 void CRawrite32Dlg::OnChangeSectorSkip() 
 {
   VerifyInput();
+}
+
+// We run all hashes in their own thread, to use as many cpus as available.
+// No locking is needed, all input is readily available, output is per thread.
+struct HashThreadState {
+  bool (*hashFunc)(const BYTE *, DWORD, CString &);
+  const BYTE *input;
+  DWORD inputLen;
+  CString hashOutput;
+  LPCTSTR hashName;
+};
+
+UINT __cdecl hashThreadWorker(void *token)
+{
+  HashThreadState *state = (HashThreadState*)token;
+  state->hashFunc(state->input, state->inputLen, state->hashOutput);
+  return 0;
+}
+
+void CRawrite32Dlg::CalcHashes(CString &out)
+{
+  enum { numHashes = 4 };
+  HashThreadState threads[numHashes];
+  HANDLE handles[numHashes];
+
+  for (int i = 0; i < numHashes; i++) {
+    threads[i].input = m_fsImage;
+    threads[i].inputLen = m_fsImageSize;
+  }
+  threads[0].hashFunc = CalcMD5; threads[0].hashName = "MD5";
+  threads[1].hashFunc = CalcSHA1; threads[1].hashName = "SHA1";
+  threads[2].hashFunc = CalcSHA256; threads[2].hashName = "SHA256";
+  threads[3].hashFunc = CalcSHA512; threads[3].hashName = "SHA512";
+
+  for (int i = 0; i < numHashes; i++)
+    handles[i] = AfxBeginThread(hashThreadWorker, &threads[i])->m_hThread;
+
+  for (;;) {
+    DWORD res = MsgWaitForMultipleObjects(numHashes, handles, TRUE, INFINITE, QS_PAINT|QS_TIMER);
+    if (res >= WAIT_OBJECT_0 && res < WAIT_OBJECT_0+numHashes) break;
+    MSG msg;
+    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+      TranslateMessage(&msg);
+      DispatchMessage(&msg);
+    }
+  }
+
+  CString t;
+  for (int i = 0; i < numHashes; i++) {
+    if (!t.IsEmpty()) t += "\r\n";
+    t += CString(threads[i].hashName) + ": " + threads[i].hashOutput;
+  }
+  out = t;
 }

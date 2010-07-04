@@ -84,7 +84,7 @@ protected:
   bool OpenInputFile(HANDLE); // map input and calculate hashes
   void CloseInputFile();  // close input file and mapping
   bool VerifyInput();     // return TRUE if "WriteToDisk" button has been enabled
-  void CalcHashes(const BYTE*, size_t, CString &out); // calculate hahes and format proper output
+  void CalcHashes(CString &out); // calculate hahes and format proper output
 
 	// Generated message map functions
 	//{{AFX_MSG(CRawrite32Dlg)
