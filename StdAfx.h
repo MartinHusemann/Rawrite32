@@ -38,13 +38,12 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#define _CRT_SECURE_NO_WARNINGS
 #define VC_EXTRALEAN		    // Exclude rarely-used stuff from Windows headers
 
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 #include <afxdtctl.h>		    // MFC support for Internet Explorer 4 Common Controls
-
-BOOL CalcMD5(const BYTE * data, DWORD size, CString & hash);
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

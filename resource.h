@@ -8,8 +8,7 @@
 #define IDD_RAWRITE32_DIALOG            102
 #define IDS_OPEN_IMAGE_FILTER           102
 #define IDS_OPEN_IMAGE_TITLE            103
-#define IDS_MESSAGE_UNCOMPRESSED        104
-#define IDS_MESSAGE_COMPRESSED          105
+#define IDS_MESSAGE_INPUT_HASHES        104
 #define IDP_DEVENUM_FAILED              106
 #define IDP_ARE_YOU_SURE                107
 #define IDP_NO_DISK                     108

@@ -109,21 +109,20 @@ void CAboutDlg::OnSurfHome()
 // CRawrite32Dlg dialog
 
 CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
-  : CDialog(CRawrite32Dlg::IDD, NULL)
+  : CDialog(CRawrite32Dlg::IDD, NULL), m_fsImage(NULL), m_fsImageSize(0), m_sectorSkip(0),
+    m_inputFile(INVALID_HANDLE_VALUE), m_inputMapping(NULL),
+    m_curInput(NULL), m_sizeRemaining(0), m_sectorOut(0)
 {
   m_hIcon = (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR);
   m_hSmallIcon = (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR);
   EnableAutomation();
-  m_fsImage = NULL;
-  m_fsImageSize = 0;
   m_imageName = imageFileName;
   m_output.LoadString(IDS_START_HINT);
-  m_sectorSkip = 0;
 }
 
 CRawrite32Dlg::~CRawrite32Dlg()
 {
-  delete m_fsImage;
+  CloseInputFile();
 }
 
 void CRawrite32Dlg::DoDataExchange(CDataExchange* pDX)
@@ -353,15 +352,12 @@ void CRawrite32Dlg::OnBrowse()
   title.LoadString(IDS_OPEN_IMAGE_TITLE);
   CFileDialog dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY, filter, this);
   dlg.m_ofn.lpstrTitle = title;
-  if (dlg.DoModal() == IDOK) {
+  if (dlg.DoModal() == IDOK)
     GetDlgItem(IDC_IMAGE_NAME)->SetWindowText(dlg.GetPathName());
-  }
 }
 
 void CRawrite32Dlg::OnNewImage() 
 {
-  CWaitCursor hourglass;
-
   CString name;
   GetDlgItem(IDC_IMAGE_NAME)->GetWindowText(name);
 
@@ -369,56 +365,10 @@ void CRawrite32Dlg::OnNewImage()
   if (hFile == INVALID_HANDLE_VALUE) {
     m_output.Empty();
     UpdateData(FALSE);
+    return;
   }
-
-  DWORD sizeHigh, sizeLow = GetFileSize(hFile, &sizeHigh);
-  HANDLE hMap = CreateFileMapping(hFile, NULL, PAGE_READONLY, sizeHigh, sizeLow, NULL);
-  if (hMap) {
-    LPBYTE inputData = (LPBYTE)MapViewOfFile(hMap, FILE_MAP_READ, 0, 0, sizeLow);
-    if (inputData) {
-      delete m_fsImage;
-      m_fsImage = NULL;
-      m_fsImageSize = 0;
-      CString hashOut, hashIn;
-      CalcMD5(inputData, sizeLow, hashIn);
-      if (UnzipImage(inputData, sizeLow)) {
-        CalcMD5(m_fsImage, m_fsImageSize, hashOut);
-        m_output.Format(IDS_MESSAGE_COMPRESSED, name, hashIn, m_fsImageSize, hashOut);
-      } else {
-        DWORD fsSize = sizeLow;
-        if (fsSize % SECTOR_SIZE) fsSize = SECTOR_SIZE*(fsSize/SECTOR_SIZE+1);
-        m_fsImage = new BYTE[fsSize];
-        m_fsImageSize = fsSize;
-        if (fsSize != sizeLow)
-          memset(m_fsImage, 0, fsSize);
-        memcpy(m_fsImage, inputData, sizeLow);
-        m_output.Format(IDS_MESSAGE_UNCOMPRESSED, name, hashIn, m_fsImageSize);
-      }
-      // show message
-      UpdateData(FALSE);
-      
-      // and copy to clipboard
-      if (OpenClipboard()) {
-        EmptyClipboard();
-        DWORD size = m_output.GetLength() + 1;
-        HANDLE hGlob = GlobalAlloc(GMEM_MOVEABLE, size);
-        LPTSTR cnt = (LPTSTR)GlobalLock(hGlob);
-        _tcscpy(cnt, m_output);
-        GlobalUnlock(hGlob);
-
-#ifdef _UNICODE
-#define T_TEXT_FMT  CF_UNICODETEXT
-#else
-#define T_TEXT_FMT  CF_TEXT
-#endif
-
-        SetClipboardData(T_TEXT_FMT, hGlob);
-        CloseClipboard();
-      }
-    }
-    CloseHandle(hMap);
-  }
-  CloseHandle(hFile);
+  OpenInputFile(hFile);
+  VerifyInput();
 }
 
 static BOOL SkipGzipHeader(LPBYTE & inputData, DWORD & inputSize)
@@ -462,6 +412,7 @@ static BOOL SkipGzipHeader(LPBYTE & inputData, DWORD & inputSize)
   return FALSE;
 }
 
+#if 0
 BOOL CRawrite32Dlg::UnzipImage(LPBYTE inputData, DWORD inputSize)
 {
   if (!SkipGzipHeader(inputData, inputSize)) return FALSE;
@@ -510,6 +461,7 @@ BOOL CRawrite32Dlg::UnzipImage(LPBYTE inputData, DWORD inputSize)
 
   return ret >= 0;
 }
+#endif
 
 #ifdef _M_IX86
 // only needed on arch=i386, otherwise assume NT anyway
@@ -636,14 +588,74 @@ void CRawrite32Dlg::OnWriteImage()
   }
 }
 
-BOOL CRawrite32Dlg::VerifyInput()
+void CRawrite32Dlg::CloseInputFile()
 {
-  BOOL retVal = FALSE;
+  if (m_inputFile == INVALID_HANDLE_VALUE) return;
+  UnmapViewOfFile(m_fsImage); m_fsImage = NULL;
+  CloseHandle(m_inputMapping); m_inputMapping = NULL;
+  CloseHandle(m_inputFile); m_inputFile = INVALID_HANDLE_VALUE;
+}
+
+bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
+{
+  CWaitCursor hourglass;
+
+  CloseInputFile();
+  m_inputFile = hFile;
+
+  DWORD sizeHigh = 0;
+  m_fsImageSize = GetFileSize(m_inputFile, &sizeHigh);
+  m_inputMapping = CreateFileMapping(m_inputFile, NULL, PAGE_READONLY, sizeHigh, m_fsImageSize, NULL);
+  if (m_inputMapping != NULL) {
+    m_fsImage = (const BYTE *)MapViewOfFile(m_inputMapping, FILE_MAP_READ, 0, 0, m_fsImageSize);
+    if (m_fsImage) {
+      CString hashValues;
+      CalcHashes(m_fsImage, m_fsImageSize, hashValues);
+      m_output.Format(IDS_MESSAGE_INPUT_HASHES, m_imageName, hashValues, m_fsImageSize);
+      // show message
+      UpdateData(FALSE);
+      
+      // and copy to clipboard
+      if (OpenClipboard()) {
+        EmptyClipboard();
+        DWORD size = m_output.GetLength() + 1;
+        HANDLE hGlob = GlobalAlloc(GMEM_MOVEABLE, size);
+        LPTSTR cnt = (LPTSTR)GlobalLock(hGlob);
+        _tcscpy(cnt, m_output);
+        GlobalUnlock(hGlob);
+
+#ifdef _UNICODE
+#define T_TEXT_FMT  CF_UNICODETEXT
+#else
+#define T_TEXT_FMT  CF_TEXT
+#endif
+
+        SetClipboardData(T_TEXT_FMT, hGlob);
+        CloseClipboard();
+      }
+    }
+  }
+
+  return m_fsImage != NULL;
+}
+
+void CRawrite32Dlg::CalcHashes(const BYTE *data, size_t nbytes, CString &out)
+{
+  CString t;
+  CalcMD5(data, nbytes, t); out = "MD5: " + t;
+  CalcSHA1(data, nbytes, t); out += "\r\nSHA1: " + t;
+  CalcSHA256(data, nbytes, t); out += "\r\nSHA256: " + t;
+  CalcSHA512(data, nbytes, t); out += "\r\nSHA512: " + t;
+}
+
+bool CRawrite32Dlg::VerifyInput()
+{
+  bool retVal = FALSE;
   BOOL valid = FALSE;
-  BOOL showMsg = FALSE;
+  bool showMsg = FALSE;
   CString dummy;
 
-  if (m_fsImage == NULL) goto done;
+  if (m_fsImage) goto done;
 
   GetDlgItemText(IDC_SECTOR_SKIP, dummy);
   m_sectorSkip = GetDlgItemInt(IDC_SECTOR_SKIP, &valid, FALSE);

@@ -38,10 +38,10 @@ extern "C" {
 #include "NetBSD/md5.h"
 }
 
-BOOL CalcMD5(const BYTE * data, DWORD size, CString & out)
+bool CalcMD5(const BYTE * data, DWORD size, CString & out)
 {
   BYTE hash[16];
-  memset(hash, 0, sizeof(unsigned char[16]));
+  memset(hash, 0, sizeof hash);
   
   MD5_CTX ctx;
   MD5Init(&ctx);
@@ -52,6 +52,56 @@ BOOL CalcMD5(const BYTE * data, DWORD size, CString & out)
              hash[0], hash[1], hash[2], hash[3], hash[4], hash[5], hash[6], hash[7], 
              hash[8], hash[9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15]);
 
-  return TRUE;
+  return true;
 }
 
+bool CalcSHA1(const BYTE * data, DWORD size, CString & out)
+{
+  BYTE hash[16];
+  memset(hash, 0, sizeof hash);
+  
+  MD5_CTX ctx;
+  MD5Init(&ctx);
+  MD5Update(&ctx, data, size);
+  MD5Final(hash, &ctx);
+
+  out.Format("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+             hash[0], hash[1], hash[2], hash[3], hash[4], hash[5], hash[6], hash[7], 
+             hash[8], hash[9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15]);
+
+  return true;
+}
+
+bool CalcSHA256(const BYTE * data, DWORD size, CString & out)
+{
+  BYTE hash[16];
+  memset(hash, 0, sizeof hash);
+  
+  MD5_CTX ctx;
+  MD5Init(&ctx);
+  MD5Update(&ctx, data, size);
+  MD5Final(hash, &ctx);
+
+  out.Format("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+             hash[0], hash[1], hash[2], hash[3], hash[4], hash[5], hash[6], hash[7], 
+             hash[8], hash[9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15]);
+
+  return true;
+}
+
+bool CalcSHA512(const BYTE * data, DWORD size, CString & out)
+{
+  BYTE hash[16];
+  memset(hash, 0, sizeof hash);
+  
+  MD5_CTX ctx;
+  MD5Init(&ctx);
+  MD5Update(&ctx, data, size);
+  MD5Final(hash, &ctx);
+
+  out.Format("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+             hash[0], hash[1], hash[2], hash[3], hash[4], hash[5], hash[6], hash[7], 
+             hash[8], hash[9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15]);
+
+  return true;
+}

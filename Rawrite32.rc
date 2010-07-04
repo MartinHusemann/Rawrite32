@@ -87,11 +87,10 @@ END
 STRINGTABLE 
 BEGIN
     IDS_ABOUTBOX            "&About Rawrite32..."
-    IDS_OPEN_IMAGE_FILTER   "(Compressed) fs images (*.fs.gz, *.fs)|*.fs.gz;*.fs|Binary images (*.bin)|*.bin|All files (*.*)|*.*||"
+    IDS_OPEN_IMAGE_FILTER   "(Compressed) fs images (*.gz, *.bz2, *.fs)|*.gz;*.bz2;*.fs|Binary images (*.bin)|*.bin|All files (*.*)|*.*||"
     IDS_OPEN_IMAGE_TITLE    "Open a file system image"
-    IDS_MESSAGE_UNCOMPRESSED 
-                            "File system image: %s\r\nMD5: %s\r\nSize: %ld byte\r\n"
-    IDS_MESSAGE_COMPRESSED  "Compressed files system image: %s\r\nMD5: %s\r\nUncompressed size: %ld byte\r\nMD5 of contents: %s\r\n"
+    IDS_MESSAGE_INPUT_HASHES 
+                            "File system image: %s\r\n%s\r\nSize: %ld byte\r\n"
     IDP_DEVENUM_FAILED      "Could not enumerate available disk devices!"
     IDP_ARE_YOU_SURE        "Are you sure you would like to write the loaded image to drive %s ?\r\nATTENTION: this will destroy all contents of the disk in that drive!"
     IDP_NO_DISK             "Could not access device!\r\nMake sure a medium is inserted and you have administrative privileges."

@@ -63,19 +63,28 @@ public:
 
 // Implementation
 protected:
-	HICON m_hIcon;
-  HICON m_hSmallIcon;
+	HICON m_hIcon;          // program icon
+  HICON m_hSmallIcon;     // and a small variant of it
 
-  LPBYTE m_fsImage;
-  DWORD m_fsImageSize;
-  DWORD m_sectorSkip;
+  CString m_imageName;    // file path of the input image
 
-  LPCTSTR m_imageName;
+  HANDLE m_inputFile;     // input file handle
+  HANDLE m_inputMapping;  // file mapping handle
+  const BYTE *m_fsImage;  // input image
+  size_t m_fsImageSize;   // size of input image
 
-  BOOL UnzipImage(LPBYTE inputData, DWORD inputSize);
+  DWORD m_sectorSkip;     // don't touch this many sectors on the output
+                          // drive (i.e. the image is written startin at the sector given here)
 
-  // check input and enable/disable "WriteToDisk" button
-  BOOL VerifyInput(); // return TRUE if "WriteToDisk" button has been enabled
+  // during decompression:
+  const BYTE *m_curInput; // pointer to next input data
+  size_t m_sizeRemaining; // unread data past m_curInput
+  DWORD m_sectorOut;      // next sector to write
+
+  bool OpenInputFile(HANDLE); // map input and calculate hashes
+  void CloseInputFile();  // close input file and mapping
+  bool VerifyInput();     // return TRUE if "WriteToDisk" button has been enabled
+  void CalcHashes(const BYTE*, size_t, CString &out); // calculate hahes and format proper output
 
 	// Generated message map functions
 	//{{AFX_MSG(CRawrite32Dlg)
@@ -103,6 +112,11 @@ protected:
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
+
+bool CalcMD5(const BYTE * data, DWORD size, CString & hash);
+bool CalcSHA1(const BYTE * data, DWORD size, CString & hash);
+bool CalcSHA256(const BYTE * data, DWORD size, CString & hash);
+bool CalcSHA512(const BYTE * data, DWORD size, CString & hash);
 
 #endif // !defined(AFX_RAWRITE32DLG_H__84A6A733_0EA9_40E6_AEC1_353C157AA5C8__INCLUDED_)
 
