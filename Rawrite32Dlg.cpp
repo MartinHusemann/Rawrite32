@@ -702,8 +702,12 @@ void CRawrite32Dlg::CalcHashes(CString &out)
   threads[2].hashFunc = CalcSHA256; threads[2].hashName = "SHA256";
   threads[3].hashFunc = CalcSHA512; threads[3].hashName = "SHA512";
 
-  for (int i = 0; i < numHashes; i++)
-    handles[i] = AfxBeginThread(hashThreadWorker, &threads[i])->m_hThread;
+  HANDLE proc = GetCurrentProcess();
+  for (int i = 0; i < numHashes; i++) {
+    handles[i] = AfxBeginThread(hashThreadWorker, &threads[i], 0, 0, CREATE_SUSPENDED)->m_hThread;
+    DuplicateHandle(proc, handles[i], proc, &handles[i], 0, FALSE, DUPLICATE_SAME_ACCESS);
+    ResumeThread(handles[i]);
+  }
 
   for (;;) {
     DWORD res = MsgWaitForMultipleObjects(numHashes, handles, TRUE, INFINITE, QS_PAINT|QS_TIMER);
