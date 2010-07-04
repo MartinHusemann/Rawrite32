@@ -170,7 +170,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				OutputFile=".\Debug/Rawrite32.exe"
-				LinkIncremental="1"
+				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/Rawrite32.pdb"
