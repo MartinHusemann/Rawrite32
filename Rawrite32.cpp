@@ -71,12 +71,6 @@ BOOL CRawrite32App::InitInstance()
 
   AfxOleInit();
 
-#ifdef _AFXDLL
-  Enable3dControls();			// Call this when using MFC in a shared DLL
-#else
-  Enable3dControlsStatic();	// Call this when linking to MFC statically
-#endif
-
   // check for command line parameter(s)
   CCommandLineInfo cmdInfo;
   ParseCommandLine(cmdInfo);
