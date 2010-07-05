@@ -31,25 +31,50 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if !defined(AFX_STDAFX_H__2AA9985D_CAC6_467D_8618_41852CE27BF2__INCLUDED_)
-#define AFX_STDAFX_H__2AA9985D_CAC6_467D_8618_41852CE27BF2__INCLUDED_
+#include "stdafx.h"
 
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
+#include "Hash.h"
 
-#define _CRT_SECURE_NO_WARNINGS
-#define VC_EXTRALEAN		    // Exclude rarely-used stuff from Windows headers
+extern "C" {
+#include "NetBSD/namespace.h"
+#include "NetBSD/md5.h"
+}
 
-#include <afxwin.h>         // MFC core and standard components
-#include <afxext.h>         // MFC extensions
-#include <afxdtctl.h>		    // MFC support for Internet Explorer 4 Common Controls
+class CHashMD5 : public IGenericHash {
+public:
+  CHashMD5()
+  {
+    MD5Init(&m_ctx);
+  }
 
-#include <vector>
-using std::vector;
+  virtual LPCTSTR HashName()
+  {
+    return "MD5";
+  }
 
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
+  virtual void AddData(const BYTE *data, DWORD len)
+  {
+    MD5Update(&m_ctx, data, len);
+  }
 
-#endif // !defined(AFX_STDAFX_H__2AA9985D_CAC6_467D_8618_41852CE27BF2__INCLUDED_)
+  virtual void HashResult(CString &out)
+  {
+    BYTE hash[16];
+    memset(hash, 0, sizeof hash);
+    MD5Final(hash, &m_ctx);
 
+    out.Format("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+               hash[0], hash[1], hash[2], hash[3], hash[4], hash[5], hash[6], hash[7], 
+               hash[8], hash[9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15]);
+  }
+
+  virtual void Delete() { delete this; }
+
+protected:
+  MD5_CTX m_ctx;
+};
+
+void GetAllHashes(vector<IGenericHash*> &result)
+{
+  result.push_back(new CHashMD5);
+}

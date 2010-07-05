@@ -1,4 +1,4 @@
-/*	$Id$	*/
+/*	$Id: Hash.cpp -1   $	*/
 
 /*-
  * Copyright (c) 2000-2003,2010 The NetBSD Foundation, Inc.
@@ -31,25 +31,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if !defined(AFX_STDAFX_H__2AA9985D_CAC6_467D_8618_41852CE27BF2__INCLUDED_)
-#define AFX_STDAFX_H__2AA9985D_CAC6_467D_8618_41852CE27BF2__INCLUDED_
+interface IGenericHash {
+  virtual LPCTSTR HashName() PURE;
+  virtual void AddData(const BYTE *data, DWORD len) PURE;
+  virtual void HashResult(CString &) PURE;
+  virtual void Delete() PURE;
+};
 
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
-#define _CRT_SECURE_NO_WARNINGS
-#define VC_EXTRALEAN		    // Exclude rarely-used stuff from Windows headers
-
-#include <afxwin.h>         // MFC core and standard components
-#include <afxext.h>         // MFC extensions
-#include <afxdtctl.h>		    // MFC support for Internet Explorer 4 Common Controls
-
-#include <vector>
-using std::vector;
-
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_STDAFX_H__2AA9985D_CAC6_467D_8618_41852CE27BF2__INCLUDED_)
-
+void GetAllHashes(vector<IGenericHash*>&);

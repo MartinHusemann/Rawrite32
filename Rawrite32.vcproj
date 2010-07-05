@@ -212,7 +212,7 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath="MD5.cpp"
+				RelativePath="Hash.cpp"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -230,34 +230,6 @@
 						Name="VCCLCompilerTool"
 						PreprocessorDefinitions=""
 						BasicRuntimeChecks="3"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="NetBSD\md5c.c"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories="NetBSD"
-						PreprocessorDefinitions=""
-						UsePrecompiledHeader="0"
-						CompileAs="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="NetBSD"
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"
-						UsePrecompiledHeader="0"
-						CompileAs="0"
 					/>
 				</FileConfiguration>
 			</File>
@@ -339,6 +311,10 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
+				RelativePath=".\Hash.h"
+				>
+			</File>
+			<File
 				RelativePath="Rawrite32.h"
 				>
 			</File>
@@ -367,6 +343,46 @@
 				RelativePath="res\Rawrite32.ico"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="NetBSD-Library"
+			>
+			<Filter
+				Name="Source Files"
+				>
+				<File
+					RelativePath="NetBSD\md5c.c"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="2"
+							AdditionalIncludeDirectories="NetBSD"
+							PreprocessorDefinitions=""
+							UsePrecompiledHeader="0"
+							CompileAs="0"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories="NetBSD"
+							PreprocessorDefinitions=""
+							BasicRuntimeChecks="3"
+							UsePrecompiledHeader="0"
+							CompileAs="0"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="Header Files"
+				>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath="COPYRIGHT"

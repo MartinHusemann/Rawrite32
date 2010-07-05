@@ -34,6 +34,7 @@
 #include "stdafx.h"
 #include "Rawrite32.h"
 #include "Rawrite32Dlg.h"
+#include "Hash.h"
 
 #include <winioctl.h>
 
@@ -611,7 +612,9 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
     if (m_fsImage) {
       CString hashValues;
       CalcHashes(hashValues);
-      m_output.Format(IDS_MESSAGE_INPUT_HASHES, m_imageName, hashValues, m_fsImageSize);
+      CString size; size.Format("%ul Byte", m_fsImageSize);
+      m_output.Format(IDS_MESSAGE_INPUT_HASHES, m_imageName, size);
+      m_output += hashValues;
       // show message
       UpdateData(FALSE);
       
@@ -671,47 +674,54 @@ void CRawrite32Dlg::OnChangeSectorSkip()
 }
 
 // We run all hashes in their own thread, to use as many cpus as available.
-// No locking is needed, all input is readily available, output is per thread.
+// The worker function loops around blocks of data processed between the DataAvailable event and sets the DataDone event after each block.
+// When there is no more input data, it exits.
 struct HashThreadState {
-  bool (*hashFunc)(const BYTE *, DWORD, CString &);
+  IGenericHash *hashImpl;
+  HANDLE DataAvailable, DataDone;
   const BYTE *input;
   DWORD inputLen;
-  CString hashOutput;
-  LPCTSTR hashName;
 };
 
 UINT __cdecl hashThreadWorker(void *token)
 {
-  HashThreadState *state = (HashThreadState*)token;
-  state->hashFunc(state->input, state->inputLen, state->hashOutput);
+  HashThreadState *hash = (HashThreadState*)token;
+  for (;;) {
+    WaitForSingleObject(hash->DataAvailable, INFINITE);
+    if (hash->input == NULL) break;
+    hash->hashImpl->AddData(hash->input, hash->inputLen);
+    SetEvent(hash->DataDone);
+  }
   return 0;
 }
 
 void CRawrite32Dlg::CalcHashes(CString &out)
 {
-  enum { numHashes = 4 };
-  HashThreadState threads[numHashes];
-  HANDLE handles[numHashes];
-
-  for (int i = 0; i < numHashes; i++) {
-    threads[i].input = m_fsImage;
-    threads[i].inputLen = m_fsImageSize;
+  vector<HashThreadState> hashes;
+  vector<HANDLE> handles;
+  {
+    vector<IGenericHash*> funcs;
+    GetAllHashes(funcs);
+    for (size_t i = 0; i < funcs.size(); i++) {
+      HashThreadState s;
+      memset(&s, 0, sizeof s);
+      s.hashImpl = funcs[i];
+      s.DataAvailable = CreateEvent(NULL, FALSE, TRUE, NULL);
+      s.DataDone = CreateEvent(NULL, FALSE, FALSE, NULL);
+      handles.push_back(s.DataDone);
+      hashes.push_back(s);
+    }
   }
-  threads[0].hashFunc = CalcMD5; threads[0].hashName = "MD5";
-  threads[1].hashFunc = CalcSHA1; threads[1].hashName = "SHA1";
-  threads[2].hashFunc = CalcSHA256; threads[2].hashName = "SHA256";
-  threads[3].hashFunc = CalcSHA512; threads[3].hashName = "SHA512";
 
-  HANDLE proc = GetCurrentProcess();
-  for (int i = 0; i < numHashes; i++) {
-    handles[i] = AfxBeginThread(hashThreadWorker, &threads[i], 0, 0, CREATE_SUSPENDED)->m_hThread;
-    DuplicateHandle(proc, handles[i], proc, &handles[i], 0, FALSE, DUPLICATE_SAME_ACCESS);
-    ResumeThread(handles[i]);
+  for (size_t i = 0; i < hashes.size(); i++) {
+    hashes[i].input = m_fsImage;
+    hashes[i].inputLen = m_fsImageSize;
+    AfxBeginThread(hashThreadWorker, &hashes[i]);
   }
 
   for (;;) {
-    DWORD res = MsgWaitForMultipleObjects(numHashes, handles, TRUE, INFINITE, QS_PAINT|QS_TIMER);
-    if (res >= WAIT_OBJECT_0 && res < WAIT_OBJECT_0+numHashes) break;
+    DWORD res = MsgWaitForMultipleObjects(handles.size(), &handles[0], TRUE, INFINITE, QS_PAINT|QS_TIMER);
+    if (res >= WAIT_OBJECT_0 && res < WAIT_OBJECT_0+handles.size()) break;
     MSG msg;
     while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
       TranslateMessage(&msg);
@@ -720,9 +730,13 @@ void CRawrite32Dlg::CalcHashes(CString &out)
   }
 
   CString t;
-  for (int i = 0; i < numHashes; i++) {
-    if (!t.IsEmpty()) t += "\r\n";
-    t += CString(threads[i].hashName) + ": " + threads[i].hashOutput;
+  for (size_t i = 0; i < hashes.size(); i++) {
+    CString name(hashes[i].hashImpl->HashName());
+    CString out; hashes[i].hashImpl->HashResult(out);
+    t += "\r\n" + name + ": " + out;
+    hashes[i].hashImpl->Delete();
+    CloseHandle(hashes[i].DataAvailable);
+    CloseHandle(hashes[i].DataDone);
   }
   out = t;
 }

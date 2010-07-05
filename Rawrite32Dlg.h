@@ -113,10 +113,5 @@ protected:
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 
-bool CalcMD5(const BYTE * data, DWORD size, CString & hash);
-bool CalcSHA1(const BYTE * data, DWORD size, CString & hash);
-bool CalcSHA256(const BYTE * data, DWORD size, CString & hash);
-bool CalcSHA512(const BYTE * data, DWORD size, CString & hash);
-
 #endif // !defined(AFX_RAWRITE32DLG_H__84A6A733_0EA9_40E6_AEC1_353C157AA5C8__INCLUDED_)
 
