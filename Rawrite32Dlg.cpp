@@ -612,7 +612,7 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
     if (m_fsImage) {
       CString hashValues;
       CalcHashes(hashValues);
-      CString size; size.Format("%ul Byte", m_fsImageSize);
+      CString size; size.Format("%lu Byte", m_fsImageSize);
       m_output.Format(IDS_MESSAGE_INPUT_HASHES, m_imageName, size);
       m_output += hashValues;
       // show message
