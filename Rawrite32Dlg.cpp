@@ -51,6 +51,9 @@ static char THIS_FILE[] = __FILE__;
 // XXX - just blindly assume we write to a 512-bye sectored medium for now
 #define SECTOR_SIZE   512
 
+// size of the view into the input image
+#define MAP_VIEW_SIZE 0x10000
+
 /////////////////////////////////////////////////////////////////////////////
 // CAboutDlg dialog used for App About
 
@@ -112,7 +115,8 @@ void CAboutDlg::OnSurfHome()
 CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
   : CDialog(CRawrite32Dlg::IDD, NULL), m_fsImage(NULL), m_fsImageSize(0), m_sectorSkip(0),
     m_inputFile(INVALID_HANDLE_VALUE), m_inputMapping(NULL),
-    m_curInput(NULL), m_sizeRemaining(0), m_sectorOut(0)
+    m_curInput(NULL), m_sizeRemaining(0), m_sectorOut(0),
+    m_inputFileSize(0), m_fileOffset(0)
 {
   m_hIcon = (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR);
   m_hSmallIcon = (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR);
@@ -368,6 +372,7 @@ void CRawrite32Dlg::OnNewImage()
     UpdateData(FALSE);
     return;
   }
+  m_imageName = name;
   OpenInputFile(hFile);
   VerifyInput();
 }
@@ -592,40 +597,64 @@ void CRawrite32Dlg::OnWriteImage()
 void CRawrite32Dlg::CloseInputFile()
 {
   if (m_inputFile == INVALID_HANDLE_VALUE) return;
-  UnmapViewOfFile(m_fsImage); m_fsImage = NULL;
+  if (m_fsImage) { UnmapViewOfFile(m_fsImage); m_fsImage = NULL; }
   CloseHandle(m_inputMapping); m_inputMapping = NULL;
   CloseHandle(m_inputFile); m_inputFile = INVALID_HANDLE_VALUE;
+}
+
+void CRawrite32Dlg::MapInputView()
+{
+  if (m_fsImage) UnmapViewOfFile(m_fsImage);
+  DWORD64 remaining = MAP_VIEW_SIZE;
+  if (m_inputFileSize - m_fileOffset < MAP_VIEW_SIZE)
+    remaining = m_inputFileSize - m_fileOffset;
+  m_fsImageSize = (DWORD)remaining;
+  m_fsImage = (const BYTE *)MapViewOfFile(m_inputMapping, FILE_MAP_READ, (DWORD)(m_fileOffset >> 32), (DWORD)m_fileOffset, m_fsImageSize);
+}
+
+bool CRawrite32Dlg::AdvanceMapOffset()
+{
+  m_fileOffset += MAP_VIEW_SIZE;
+  return m_fileOffset < m_inputFileSize;
 }
 
 bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
 {
   CWaitCursor hourglass;
+  bool retVal = false;
 
   CloseInputFile();
+  m_inputFileSize = 0;
   m_inputFile = hFile;
 
   DWORD sizeHigh = 0;
   m_fsImageSize = GetFileSize(m_inputFile, &sizeHigh);
   m_inputMapping = CreateFileMapping(m_inputFile, NULL, PAGE_READONLY, sizeHigh, m_fsImageSize, NULL);
   if (m_inputMapping != NULL) {
-    m_fsImage = (const BYTE *)MapViewOfFile(m_inputMapping, FILE_MAP_READ, 0, 0, m_fsImageSize);
-    if (m_fsImage) {
-      CString hashValues;
-      CalcHashes(hashValues);
-      CString size; size.Format("%lu Byte", m_fsImageSize);
-      m_output.Format(IDS_MESSAGE_INPUT_HASHES, m_imageName, size);
-      m_output += hashValues;
-      // show message
-      UpdateData(FALSE);
-      
-      // and copy to clipboard
-      if (OpenClipboard()) {
-        EmptyClipboard();
-        DWORD size = m_output.GetLength() + 1;
-        HANDLE hGlob = GlobalAlloc(GMEM_MOVEABLE, size);
-        LPTSTR cnt = (LPTSTR)GlobalLock(hGlob);
-        _tcscpy(cnt, m_output);
-        GlobalUnlock(hGlob);
+    m_inputFileSize = (DWORD64)m_fsImageSize | ((DWORD64)sizeHigh<<32);
+    CString hashValues;
+    CalcHashes(hashValues);
+    CString size;
+    if (m_inputFileSize > 1024*1024) {
+      double v = (double)m_inputFileSize/(double)(1024*1024);
+      size.Format("%.1f MByte", v);
+    } else {
+      size.Format("%lu Byte", m_fsImageSize);
+    }
+    m_output.Format(IDS_MESSAGE_INPUT_HASHES, m_imageName, size);
+    m_output += hashValues;
+    // show message
+    UpdateData(FALSE);
+    retVal = true;
+    
+    // and copy to clipboard
+    if (OpenClipboard()) {
+      EmptyClipboard();
+      DWORD size = m_output.GetLength() + 1;
+      HANDLE hGlob = GlobalAlloc(GMEM_MOVEABLE, size);
+      LPTSTR cnt = (LPTSTR)GlobalLock(hGlob);
+      _tcscpy(cnt, m_output);
+      GlobalUnlock(hGlob);
 
 #ifdef _UNICODE
 #define T_TEXT_FMT  CF_UNICODETEXT
@@ -633,13 +662,12 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
 #define T_TEXT_FMT  CF_TEXT
 #endif
 
-        SetClipboardData(T_TEXT_FMT, hGlob);
-        CloseClipboard();
-      }
+      SetClipboardData(T_TEXT_FMT, hGlob);
+      CloseClipboard();
     }
   }
 
-  return m_fsImage != NULL;
+  return retVal;
 }
 
 bool CRawrite32Dlg::VerifyInput()
@@ -649,7 +677,7 @@ bool CRawrite32Dlg::VerifyInput()
   bool showMsg = FALSE;
   CString dummy;
 
-  if (m_fsImage) goto done;
+  if (m_inputMapping == NULL) goto done;
 
   GetDlgItemText(IDC_SECTOR_SKIP, dummy);
   m_sectorSkip = GetDlgItemInt(IDC_SECTOR_SKIP, &valid, FALSE);
@@ -706,29 +734,38 @@ void CRawrite32Dlg::CalcHashes(CString &out)
       HashThreadState s;
       memset(&s, 0, sizeof s);
       s.hashImpl = funcs[i];
-      s.DataAvailable = CreateEvent(NULL, FALSE, TRUE, NULL);
+      s.DataAvailable = CreateEvent(NULL, FALSE, FALSE, NULL);
       s.DataDone = CreateEvent(NULL, FALSE, FALSE, NULL);
       handles.push_back(s.DataDone);
       hashes.push_back(s);
     }
   }
 
-  for (size_t i = 0; i < hashes.size(); i++) {
-    hashes[i].input = m_fsImage;
-    hashes[i].inputLen = m_fsImageSize;
+  // create one worker thread per hash
+  for (size_t i = 0; i < hashes.size(); i++)
     AfxBeginThread(hashThreadWorker, &hashes[i]);
-  }
 
+  // loop over the whole input file
+  m_fileOffset = 0;
   for (;;) {
-    DWORD res = MsgWaitForMultipleObjects(handles.size(), &handles[0], TRUE, INFINITE, QS_PAINT|QS_TIMER);
-    if (res >= WAIT_OBJECT_0 && res < WAIT_OBJECT_0+handles.size()) break;
-    MSG msg;
-    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-      TranslateMessage(&msg);
-      DispatchMessage(&msg);
+    MapInputView();
+    for (size_t i = 0; i < hashes.size(); i++) {
+      hashes[i].input = m_fsImage;
+      hashes[i].inputLen = m_fsImageSize;
+      SetEvent(hashes[i].DataAvailable);
     }
+    WaitAndPoll(handles);
+    if (!AdvanceMapOffset()) break;
   }
+  // done, notify worker threads
+  for (size_t i = 0; i < hashes.size(); i++) {
+    hashes[i].input = NULL;
+    hashes[i].inputLen = 0;
+    SetEvent(hashes[i].DataAvailable);
+  }
+  UnmapViewOfFile(m_fsImage); m_fsImage = NULL;
 
+  // collect output
   CString t;
   for (size_t i = 0; i < hashes.size(); i++) {
     CString name(hashes[i].hashImpl->HashName());
@@ -739,4 +776,17 @@ void CRawrite32Dlg::CalcHashes(CString &out)
     CloseHandle(hashes[i].DataDone);
   }
   out = t;
+}
+
+void CRawrite32Dlg::WaitAndPoll(const vector<HANDLE> &handles)
+{
+  for (;;) {
+    DWORD res = MsgWaitForMultipleObjects(handles.size(), &handles[0], TRUE, INFINITE, QS_PAINT|QS_TIMER);
+    if (res >= WAIT_OBJECT_0 && res < WAIT_OBJECT_0+handles.size()) return;
+    MSG msg;
+    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+      TranslateMessage(&msg);
+      DispatchMessage(&msg);
+    }
+  }
 }

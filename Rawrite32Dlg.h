@@ -70,6 +70,8 @@ protected:
 
   HANDLE m_inputFile;     // input file handle
   HANDLE m_inputMapping;  // file mapping handle
+  DWORD64 m_inputFileSize;// file size of input image
+  DWORD64 m_fileOffset;   // current offset of mapping view
   const BYTE *m_fsImage;  // input image
   size_t m_fsImageSize;   // size of input image
 
@@ -81,11 +83,17 @@ protected:
   size_t m_sizeRemaining; // unread data past m_curInput
   DWORD m_sectorOut;      // next sector to write
 
-  bool OpenInputFile(HANDLE); // map input and calculate hashes
-  void CloseInputFile();  // close input file and mapping
-  bool VerifyInput();     // return TRUE if "WriteToDisk" button has been enabled
-  void CalcHashes(CString &out); // calculate hahes and format proper output
+protected:
+  bool OpenInputFile(HANDLE);         // map input and calculate hashes
+  void CloseInputFile();              // close input file and mapping
+  bool VerifyInput();                 // return TRUE if "WriteToDisk" button has been enabled
+  void CalcHashes(CString &out);      // calculate hahes and format proper output
+  void WaitAndPoll(const vector<HANDLE>&);  // wait for all objects passed, handling paint and other important messages
+  void MapInputView();                // map the next block at the current input offset
+  bool AdvanceMapOffset();            // advance the input offset, return false if past end of file
 
+
+protected:
 	// Generated message map functions
 	//{{AFX_MSG(CRawrite32Dlg)
 	virtual BOOL OnInitDialog();
