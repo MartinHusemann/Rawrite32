@@ -54,6 +54,18 @@ static char THIS_FILE[] = __FILE__;
 // size of the view into the input image
 #define MAP_VIEW_SIZE 0x10000
 
+#ifdef _M_IX86
+// only needed on arch=i386, otherwise assume NT anyway
+static bool RunningOnDOS()
+{
+  OSVERSIONINFO osVers;
+  memset(&osVers, 0, sizeof osVers);
+  osVers.dwOSVersionInfoSize = sizeof osVers;
+  GetVersionEx(&osVers);
+  return osVers.dwPlatformId != VER_PLATFORM_WIN32_NT;
+}
+#endif
+
 /////////////////////////////////////////////////////////////////////////////
 // CAboutDlg dialog used for App About
 
@@ -116,18 +128,28 @@ CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
   : CDialog(CRawrite32Dlg::IDD, NULL), m_fsImage(NULL), m_fsImageSize(0), m_sectorSkip(0),
     m_inputFile(INVALID_HANDLE_VALUE), m_inputMapping(NULL),
     m_curInput(NULL), m_sizeRemaining(0), m_sectorOut(0),
-    m_inputFileSize(0), m_fileOffset(0)
+    m_inputFileSize(0), m_fileOffset(0),m_outputDevice(INVALID_HANDLE_VALUE)
+#ifdef _M_IX86
+    , m_usingVXD(RunningOnDOS()), m_partialSector(NULL), m_partialSize(0)
+#endif
 {
   m_hIcon = (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR);
   m_hSmallIcon = (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR);
   EnableAutomation();
   m_imageName = imageFileName;
   m_output.LoadString(IDS_START_HINT);
+#ifdef _M_IX86
+  if (m_usingVXD)
+    m_partialSector = new BYTE[SECTOR_SIZE];
+#endif
 }
 
 CRawrite32Dlg::~CRawrite32Dlg()
 {
   CloseInputFile();
+#ifdef _M_IX86
+  delete m_partialSector;
+#endif
 }
 
 void CRawrite32Dlg::DoDataExchange(CDataExchange* pDX)
@@ -469,18 +491,6 @@ BOOL CRawrite32Dlg::UnzipImage(LPBYTE inputData, DWORD inputSize)
 }
 #endif
 
-#ifdef _M_IX86
-// only needed on arch=i386, otherwise assume NT anyway
-static BOOL RunningOnDOS()
-{
-  OSVERSIONINFO osVers;
-  memset(&osVers, 0, sizeof osVers);
-  osVers.dwOSVersionInfoSize = sizeof osVers;
-  GetVersionEx(&osVers);
-  return osVers.dwPlatformId != VER_PLATFORM_WIN32_NT;
-}
-#endif
-
 void CRawrite32Dlg::OnWriteImage() 
 {
   if (!VerifyInput())
@@ -498,7 +508,7 @@ void CRawrite32Dlg::OnWriteImage()
 
 #ifdef _M_IX86  // special case for legacy versions on arch=i386
 
-  if (RunningOnDOS()) {
+  if (m_usingVXD) {
     // Windows 9x: can't write to devices, need DOS services via vwin32.vdx
 
 #define VWIN32_DIOC_DOS_INT26   3
@@ -512,8 +522,8 @@ void CRawrite32Dlg::OnWriteImage()
         DWORD reg_Flags;
     } DIOC_REGISTERS, *PDIOC_REGISTERS;
 
-    HANDLE hDev = CreateFile("\\\\.\\vwin32", 0, 0, NULL, 0, FILE_FLAG_DELETE_ON_CLOSE, NULL);
-    if (hDev == INVALID_HANDLE_VALUE) {
+    m_outputDevice = CreateFile("\\\\.\\vwin32", 0, 0, NULL, 0, FILE_FLAG_DELETE_ON_CLOSE, NULL);
+    if (m_outputDevice == INVALID_HANDLE_VALUE) {
       AfxMessageBox(IDP_NO_VXD);
       return;
     }
@@ -542,10 +552,10 @@ void CRawrite32Dlg::OnWriteImage()
 
     {
       CWaitCursor hourglass;
-      fResult = DeviceIoControl(hDev,  VWIN32_DIOC_DOS_INT26, &reg, sizeof(reg),  &reg, sizeof(reg), &cb, 0);
+      fResult = DeviceIoControl(m_outputDevice,  VWIN32_DIOC_DOS_INT26, &reg, sizeof(reg),  &reg, sizeof(reg), &cb, 0);
     }
 
-    CloseHandle(hDev);
+    CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
 
     if (!fResult || (reg.reg_Flags & 0x0001)) {
       AfxMessageBox(IDP_WRITE_ERROR);
@@ -562,25 +572,25 @@ void CRawrite32Dlg::OnWriteImage()
     // Windows NT does it the UNIX way...
     CString internalName;
     internalName.Format(_T("\\\\.\\%s"), drive);
-    HANDLE theDrive = CreateFile(internalName, GENERIC_ALL, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (theDrive == INVALID_HANDLE_VALUE) {
+    m_outputDevice = CreateFile(internalName, GENERIC_ALL, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (m_outputDevice == INVALID_HANDLE_VALUE) {
       AfxMessageBox(IDP_NO_DISK);
       return;
     }
     DWORD bytes = 0;
-    if (DeviceIoControl(theDrive, FSCTL_LOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL) == 0) {
+    if (DeviceIoControl(m_outputDevice, FSCTL_LOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL) == 0) {
       AfxMessageBox(IDP_CANT_LOCK_DISK);
-      CloseHandle(theDrive);
+      CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
       return;
     }
 
     CWaitCursor hourglass;
 
     if (m_sectorSkip)
-      SetFilePointer(theDrive, m_sectorSkip*SECTOR_SIZE, NULL, FILE_BEGIN);
+      SetFilePointer(m_outputDevice, m_sectorSkip*SECTOR_SIZE, NULL, FILE_BEGIN);
 
     DWORD written = 0;
-    if (!WriteFile(theDrive, m_fsImage, m_fsImageSize, &written, NULL) || written != m_fsImageSize) {
+    if (!WriteFile(m_outputDevice, m_fsImage, m_fsImageSize, &written, NULL) || written != m_fsImageSize) {
       AfxMessageBox(IDP_WRITE_ERROR);
     } else {
       CString msg;
@@ -588,9 +598,9 @@ void CRawrite32Dlg::OnWriteImage()
       m_output += msg;
       UpdateData(FALSE);
     }
-    DeviceIoControl(theDrive, FSCTL_UNLOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL);
-    DeviceIoControl(theDrive, IOCTL_DISK_UPDATE_PROPERTIES, NULL, 0, NULL, 0, &bytes, NULL);
-    CloseHandle(theDrive);
+    DeviceIoControl(m_outputDevice, FSCTL_UNLOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL);
+    DeviceIoControl(m_outputDevice, IOCTL_DISK_UPDATE_PROPERTIES, NULL, 0, NULL, 0, &bytes, NULL);
+    CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
   }
 }
 

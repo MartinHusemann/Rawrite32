@@ -82,6 +82,12 @@ protected:
   const BYTE *m_curInput; // pointer to next input data
   size_t m_sizeRemaining; // unread data past m_curInput
   DWORD m_sectorOut;      // next sector to write
+  HANDLE m_outputDevice;  // handle of the output device
+#ifdef _M_IX86            // special case for legacy versions on arch=i386
+  BYTE *m_partialSector;  // if we are writing via VXD only full sectors can be transfered,
+  DWORD m_partialSize;    // so if uncompression delivers a partial block, we have to keep that around
+  bool m_usingVXD;        // true if we are on Win9x and can't write raw devices directly
+#endif
 
 protected:
   bool OpenInputFile(HANDLE);         // map input and calculate hashes
