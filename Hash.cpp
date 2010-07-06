@@ -38,6 +38,8 @@
 extern "C" {
 #include "NetBSD/namespace.h"
 #include "NetBSD/md5.h"
+#include "NetBSD/sys/sha1.h"
+#include "NetBSD/sys/sha2.h"
 }
 
 class CHashMD5 : public IGenericHash {
@@ -74,7 +76,122 @@ protected:
   MD5_CTX m_ctx;
 };
 
+class CHashSHA1 : public IGenericHash {
+public:
+  CHashSHA1()
+  {
+    SHA1Init(&m_ctx);
+  }
+
+  virtual LPCTSTR HashName()
+  {
+    return "SHA1";
+  }
+
+  virtual void AddData(const BYTE *data, DWORD len)
+  {
+    SHA1Update(&m_ctx, data, len);
+  }
+
+  virtual void HashResult(CString &out)
+  {
+    BYTE hash[SHA1_DIGEST_LENGTH];
+    memset(hash, 0, sizeof hash);
+    SHA1Final(hash, &m_ctx);
+    
+    CString res, t;
+    for (size_t i = 0; i < SHA1_DIGEST_LENGTH; i++) {
+      t.Format("%02x", hash[i]);
+      res += t;
+    }
+    out = res;
+  }
+
+  virtual void Delete() { delete this; }
+
+protected:
+  SHA1_CTX m_ctx;
+};
+
+
+class CHashSHA256 : public IGenericHash {
+public:
+  CHashSHA256()
+  {
+    SHA256_Init(&m_ctx);
+  }
+
+  virtual LPCTSTR HashName()
+  {
+    return "SHA256";
+  }
+
+  virtual void AddData(const BYTE *data, DWORD len)
+  {
+    SHA256_Update(&m_ctx, data, len);
+  }
+
+  virtual void HashResult(CString &out)
+  {
+    BYTE hash[SHA256_DIGEST_LENGTH];
+    memset(hash, 0, sizeof hash);
+    SHA256_Final(hash, &m_ctx);
+    
+    CString res, t;
+    for (size_t i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+      t.Format("%02x", hash[i]);
+      res += t;
+    }
+    out = res;
+  }
+
+  virtual void Delete() { delete this; }
+
+protected:
+  SHA256_CTX m_ctx;
+};
+
+class CHashSHA512 : public IGenericHash {
+public:
+  CHashSHA512()
+  {
+    SHA512_Init(&m_ctx);
+  }
+
+  virtual LPCTSTR HashName()
+  {
+    return "SHA512";
+  }
+
+  virtual void AddData(const BYTE *data, DWORD len)
+  {
+    SHA512_Update(&m_ctx, data, len);
+  }
+
+  virtual void HashResult(CString &out)
+  {
+    BYTE hash[SHA512_DIGEST_LENGTH];
+    memset(hash, 0, sizeof hash);
+    SHA512_Final(hash, &m_ctx);
+    
+    CString res, t;
+    for (size_t i = 0; i < SHA512_DIGEST_LENGTH; i++) {
+      t.Format("%02x", hash[i]);
+      res += t;
+    }
+    out = res;
+  }
+
+  virtual void Delete() { delete this; }
+
+protected:
+  SHA512_CTX m_ctx;
+};
+
 void GetAllHashes(vector<IGenericHash*> &result)
 {
   result.push_back(new CHashMD5);
+  result.push_back(new CHashSHA1);
+  result.push_back(new CHashSHA256);
+  result.push_back(new CHashSHA512);
 }

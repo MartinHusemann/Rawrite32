@@ -32,10 +32,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-// simple namespace.h file for Win32 compilation of md5c.c
+// simple namespace.h file for Win32 compilation of NetBSD hash code
 
-typedef unsigned long u_int32_t;
-typedef unsigned short u_int16_t;
+typedef unsigned __int32 u_int32_t;
+typedef unsigned __int16 u_int16_t;
+typedef unsigned __int64 uint64_t;
+typedef unsigned __int32 uint32_t;
+typedef unsigned __int16 uint16_t;
+typedef unsigned __int8  uint8_t;
+typedef unsigned char    u_char;
+typedef unsigned __int32 u_int;
+
+#include <stdlib.h>
 
 #define __BEGIN_DECLS /**/
 #define __END_DECLS   /**/

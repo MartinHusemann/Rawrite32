@@ -220,6 +220,7 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
+						AdditionalIncludeDirectories="NetBSD"
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
@@ -228,6 +229,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="NetBSD"
 						PreprocessorDefinitions=""
 						BasicRuntimeChecks="3"
 					/>
@@ -378,10 +380,71 @@
 						/>
 					</FileConfiguration>
 				</File>
+				<File
+					RelativePath=".\NetBSD\sha1.c"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories="NetBSD"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories="NetBSD"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\NetBSD\sha2.c"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories="NetBSD"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AdditionalIncludeDirectories="NetBSD"
+							PreprocessorDefinitions="HAVE_NBTOOL_CONFIG_H"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+				</File>
 			</Filter>
 			<Filter
 				Name="Header Files"
 				>
+				<File
+					RelativePath=".\NetBSD\md5.h"
+					>
+				</File>
+				<File
+					RelativePath=".\NetBSD\namespace.h"
+					>
+				</File>
+				<File
+					RelativePath=".\NetBSD\sys\sha1.h"
+					>
+				</File>
+				<File
+					RelativePath=".\NetBSD\sys\sha2.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<File

@@ -637,7 +637,10 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
     CString size;
     if (m_inputFileSize > 1024*1024) {
       double v = (double)m_inputFileSize/(double)(1024*1024);
-      size.Format("%.1f MByte", v);
+      if (v < 1024.0)
+        size.Format("%.1f MByte", v);
+      else
+        size.Format("%.2f GByte", v/1024.0);
     } else {
       size.Format("%lu Byte", m_fsImageSize);
     }
