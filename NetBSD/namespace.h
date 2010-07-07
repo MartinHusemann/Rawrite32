@@ -1,10 +1,10 @@
 /*	$Id$	*/
 
 /*-
- * Copyright (c) 2000 The NetBSD Foundation, Inc.
+ * Copyright (c) 2000-2003,2010 The NetBSD Foundation, Inc.
  * All rights reserved.
  *
- * Copyright (c) 2000 Martin Husemann <martin@duskware.de>.
+ * Copyright (c) 2000-2003,2010 Martin Husemann <martin@duskware.de>.
  * All rights reserved.
  * 
  * This code was developed by Martin Husemann for the benefit of
@@ -15,9 +15,8 @@
  * are met:
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
+ * 2. The name of the author may not be used to endorse or promote products
+ *    derived from this software withough specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE NETBSD FOUNDATION, INC. AND CONTRIBUTORS
  * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
@@ -32,7 +31,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-// simple namespace.h file for Win32 compilation of NetBSD hash code
+/* simple namespace.h file for Win32 compilation of NetBSD hash code, see nbtool_config.h for more */
 
 typedef unsigned __int32 u_int32_t;
 typedef unsigned __int16 u_int16_t;
