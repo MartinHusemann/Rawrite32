@@ -1,7 +1,18 @@
-All files distributed in this archive are subject to the following
-copyright terms:
+The source for Rawrite32 consists of multiple parts:
+  - the "real" Rawrite32 source files
+  - some files from the NetBSD tree, redistributed unmodified
+    in the NetBSD subdirectory
+  - the zlib and bz2lib sources, which have to be extracted
+    from their own distribution into the zlib and bz2lib directory.
 
-Copyright (c) 2000,2010 Martin Husemann <martin@duskware.de>.
+All Rawrite32 source files are subject to the following
+license terms:
+
+--8<--
+Copyright (c) 2000-2003,2010 The NetBSD Foundation, Inc.
+All rights reserved.
+
+Copyright (c) 2000-2003,2010 Martin Husemann <martin@duskware.de>.
 All rights reserved.
 
 This code was developed by Martin Husemann for the benefit of
@@ -26,3 +37,9 @@ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
+-->8--
+
+The NetBSD source files have their own license, in short they are either
+BSD licensed or in the public domain.
+
+Zlib and bz2lib have their own licenses as well.
