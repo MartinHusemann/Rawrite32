@@ -35,12 +35,9 @@
 #include "Rawrite32.h"
 #include "Rawrite32Dlg.h"
 #include "Hash.h"
+#include "Decompress.h"
 
 #include <winioctl.h>
-
-extern "C" {
-#include "zlib/zlib.h"
-}
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -53,6 +50,9 @@ static char THIS_FILE[] = __FILE__;
 
 // size of the view into the input image
 #define MAP_VIEW_SIZE 0x10000
+
+// size of the decompression buffer
+#define OUTPUT_BUF_SIZE (1*1024*1024)
 
 #ifdef _M_IX86
 // only needed on arch=i386, otherwise assume NT anyway
@@ -127,10 +127,11 @@ void CAboutDlg::OnSurfHome()
 CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
   : CDialog(CRawrite32Dlg::IDD, NULL), m_fsImage(NULL), m_fsImageSize(0), m_sectorSkip(0),
     m_inputFile(INVALID_HANDLE_VALUE), m_inputMapping(NULL),
-    m_curInput(NULL), m_sizeRemaining(0), m_sectorOut(0),
-    m_inputFileSize(0), m_fileOffset(0),m_outputDevice(INVALID_HANDLE_VALUE)
+    m_curInput(NULL), m_sizeRemaining(0), m_sizeWritten(0),
+    m_inputFileSize(0), m_fileOffset(0),m_outputDevice(INVALID_HANDLE_VALUE),
+    m_outputBuffer(new BYTE[OUTPUT_BUF_SIZE])
 #ifdef _M_IX86
-    , m_usingVXD(RunningOnDOS()), m_partialSector(NULL), m_partialSize(0)
+    , m_usingVXD(RunningOnDOS()), m_sectorOut(0)
 #endif
 {
   m_hIcon = (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR);
@@ -138,18 +139,12 @@ CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
   EnableAutomation();
   m_imageName = imageFileName;
   m_output.LoadString(IDS_START_HINT);
-#ifdef _M_IX86
-  if (m_usingVXD)
-    m_partialSector = new BYTE[SECTOR_SIZE];
-#endif
 }
 
 CRawrite32Dlg::~CRawrite32Dlg()
 {
   CloseInputFile();
-#ifdef _M_IX86
-  delete m_partialSector;
-#endif
+  delete [] m_outputBuffer;
 }
 
 void CRawrite32Dlg::DoDataExchange(CDataExchange* pDX)
@@ -399,98 +394,6 @@ void CRawrite32Dlg::OnNewImage()
   VerifyInput();
 }
 
-static BOOL SkipGzipHeader(LPBYTE & inputData, DWORD & inputSize)
-{
-  /* from gzip source code: */
-#define ASCII_FLAG   0x01 /* bit 0 set: file probably ascii text */
-#define CONTINUATION 0x02 /* bit 1 set: continuation of multi-part gzip file */
-#define EXTRA_FIELD  0x04 /* bit 2 set: extra field present */
-#define ORIG_NAME    0x08 /* bit 3 set: original file name present */
-#define COMMENT      0x10 /* bit 4 set: file comment present */
-#define ENCRYPTED    0x20 /* bit 5 set: file is encrypted */
-#define RESERVED     0xC0 /* bit 6,7:   reserved */
-
-#define DEFLATED     8
-
-  if ((inputData[0] == 0x1f && inputData[1] == 0x8b) 
-      || (inputData[0] == 0x1f && inputData[1] == 0x9e))  // gzip old and new magic header
-  {
-    BYTE method = inputData[2];
-    if (method != DEFLATED) return FALSE;
-    BYTE flags = inputData[3];
-    LPBYTE p = inputData + 10;
-    if (flags & CONTINUATION) p++;
-    if (flags & EXTRA_FIELD) {
-      unsigned short len = *p++;
-      len |= (*p) << 8; p++;
-      p += len;
-    }
-    if (flags & ORIG_NAME) {
-      while (*p) p++;
-      p++;
-    }
-    if (flags & COMMENT) {
-      while (*p) p++;
-      p++;
-    }
-    inputSize -= p-inputData;
-    inputData = p;
-    return TRUE;
-  }
-  return FALSE;
-}
-
-#if 0
-BOOL CRawrite32Dlg::UnzipImage(LPBYTE inputData, DWORD inputSize)
-{
-  if (!SkipGzipHeader(inputData, inputSize)) return FALSE;
-
-  // get the uncompressed size
-  LPBYTE p = inputData + inputSize - 4;
-  DWORD outAllocSize = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
-
-  z_stream_s decomp;
-  memset(&decomp, 0, sizeof decomp);
-  LPBYTE outData = new BYTE[outAllocSize];
-  decomp.next_out = outData;
-  decomp.avail_out = outAllocSize;
-  decomp.next_in = inputData;
-  decomp.avail_in = inputSize;
-
-  int ret;
-  ret = inflateInit2(&decomp, -MAX_WBITS);
-  if (ret >= 0) {
-    ret = inflate(&decomp, Z_SYNC_FLUSH);
-    if (ret == Z_STREAM_END) {
-      DWORD crc = crc32(0L, Z_NULL, 0);
-      crc = crc32(crc, outData, decomp.total_out);
-      DWORD crcSrc = 0;
-      LPBYTE p = decomp.next_in;
-      crcSrc = p[0];
-      crcSrc |= p[1] << 8;
-      crcSrc |= p[2] << 16;
-      crcSrc |= p[3] << 24;
-      if (crcSrc != crc)
-        ret = -1;
-    }
-    inflateEnd(&decomp);
-  }
-
-  if (ret >= 0) {
-    m_fsImageSize = decomp.total_out;
-    if (m_fsImageSize % SECTOR_SIZE) m_fsImageSize = SECTOR_SIZE*(m_fsImageSize/SECTOR_SIZE+1);
-    m_fsImage = new BYTE[m_fsImageSize];
-    if (m_fsImageSize != decomp.total_out)
-      memset(m_fsImage, 0, m_fsImageSize);
-    memcpy(m_fsImage, outData, m_fsImageSize);
-  }
-
-  delete outData;
-
-  return ret >= 0;
-}
-#endif
-
 void CRawrite32Dlg::OnWriteImage() 
 {
   if (!VerifyInput())
@@ -506,68 +409,18 @@ void CRawrite32Dlg::OnWriteImage()
   if (AfxMessageBox(msg, MB_YESNO|MB_ICONSTOP, IDP_ARE_YOU_SURE) != IDYES)
     return;
 
+  bool success = true;
 #ifdef _M_IX86  // special case for legacy versions on arch=i386
-
   if (m_usingVXD) {
     // Windows 9x: can't write to devices, need DOS services via vwin32.vdx
-
-#define VWIN32_DIOC_DOS_INT26   3
-    typedef struct _DIOC_REGISTERS {
-        DWORD reg_EBX;
-        DWORD reg_EDX;
-        DWORD reg_ECX;
-        DWORD reg_EAX;
-        DWORD reg_EDI;
-        DWORD reg_ESI;
-        DWORD reg_Flags;
-    } DIOC_REGISTERS, *PDIOC_REGISTERS;
-
     m_outputDevice = CreateFile("\\\\.\\vwin32", 0, 0, NULL, 0, FILE_FLAG_DELETE_ON_CLOSE, NULL);
     if (m_outputDevice == INVALID_HANDLE_VALUE) {
       AfxMessageBox(IDP_NO_VXD);
       return;
     }
-
-    DIOC_REGISTERS reg;
-    memset(&reg, 0, sizeof reg);
-    /*
-     * DOS int 0x26:
-     * AL = drive number (00h = A:, 01h = B:, etc)
-     * CX = number of sectors to write (not FFFFh)
-     * DX = starting logical sector number
-     * DS:BX -> data to write
-     */
-    drive.MakeUpper();
-    reg.reg_EAX = drive[0] - 'A';
-    reg.reg_ECX = m_fsImageSize / SECTOR_SIZE;
-    reg.reg_EDX = 0;
-    reg.reg_EBX = (DWORD)m_fsImage;
-    reg.reg_Flags = 0x0001; // assume error
-
-    if (m_sectorSkip)
-      reg.reg_EDX = m_sectorSkip;
-
-    DWORD cb = 0;
-    BOOL fResult = FALSE;
-
-    {
-      CWaitCursor hourglass;
-      fResult = DeviceIoControl(m_outputDevice,  VWIN32_DIOC_DOS_INT26, &reg, sizeof(reg),  &reg, sizeof(reg), &cb, 0);
-    }
-
-    CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
-
-    if (!fResult || (reg.reg_Flags & 0x0001)) {
-      AfxMessageBox(IDP_WRITE_ERROR);
-    } else {
-      CString msg;
-      msg.LoadString(IDS_SUCCESS);
-      m_output += msg;
-      UpdateData(FALSE);
-    }
-
+    m_sectorOut = m_sectorSkip;
   } else
-#endif // not i386
+#endif
   {
     // Windows NT does it the UNIX way...
     CString internalName;
@@ -584,23 +437,95 @@ void CRawrite32Dlg::OnWriteImage()
       return;
     }
 
-    CWaitCursor hourglass;
 
     if (m_sectorSkip)
       SetFilePointer(m_outputDevice, m_sectorSkip*SECTOR_SIZE, NULL, FILE_BEGIN);
+  }
 
-    DWORD written = 0;
-    if (!WriteFile(m_outputDevice, m_fsImage, m_fsImageSize, &written, NULL) || written != m_fsImageSize) {
-      AfxMessageBox(IDP_WRITE_ERROR);
-    } else {
-      CString msg;
-      msg.LoadString(IDS_SUCCESS);
-      m_output += msg;
-      UpdateData(FALSE);
+  CWaitCursor hourglass;
+  m_fileOffset = 0;
+  m_fsImageSize = 0;
+  MapInputView();
+  IGenericDecompressor *decomp = StartDecompress(m_fsImage, m_fsImageSize);
+
+  for (;;) {
+
+#ifdef _M_IX86
+    if (m_usingVXD) {
+
+#define VWIN32_DIOC_DOS_INT26   3
+      typedef struct _DIOC_REGISTERS {
+          DWORD reg_EBX;
+          DWORD reg_EDX;
+          DWORD reg_ECX;
+          DWORD reg_EAX;
+          DWORD reg_EDI;
+          DWORD reg_ESI;
+          DWORD reg_Flags;
+      } DIOC_REGISTERS, *PDIOC_REGISTERS;
+
+      DIOC_REGISTERS reg;
+      memset(&reg, 0, sizeof reg);
+      /*
+       * DOS int 0x26:
+       * AL = drive number (00h = A:, 01h = B:, etc)
+       * CX = number of sectors to write (not FFFFh)
+       * DX = starting logical sector number
+       * DS:BX -> data to write
+       */
+      drive.MakeUpper();
+      reg.reg_EAX = drive[0] - 'A';
+      reg.reg_ECX = m_fsImageSize / SECTOR_SIZE;
+      reg.reg_EDX = m_sectorOut;
+      reg.reg_EBX = (DWORD)m_fsImage;
+      reg.reg_Flags = 0x0001; // assume error
+
+      DWORD cb = 0;
+      BOOL fResult = DeviceIoControl(m_outputDevice,  VWIN32_DIOC_DOS_INT26, &reg, sizeof(reg),  &reg, sizeof(reg), &cb, 0);
+      if (!fResult || (reg.reg_Flags & 0x0001)) {
+        AfxMessageBox(IDP_WRITE_ERROR);
+        success = false;
+        break;
+      }
+      m_sectorOut += m_fsImageSize / SECTOR_SIZE;
+      m_sizeWritten += m_fsImageSize;
+
+    } else
+#endif // not i386
+    {
+      DWORD written = 0;
+      if (!WriteFile(m_outputDevice, m_fsImage, m_fsImageSize, &written, NULL) || written != m_fsImageSize) {
+        AfxMessageBox(IDP_WRITE_ERROR);
+        success = false;
+        break;
+      }
+      m_sizeWritten += written;
     }
+
+    UnmapViewOfFile(m_fsImage); m_fsImage = NULL;
+    if (!AdvanceMapOffset()) break;
+    MapInputView();
+  }
+
+  if (m_fsImage) { UnmapViewOfFile(m_fsImage); m_fsImage = NULL; }
+
+#ifdef _M_IX86  // special case for legacy versions on arch=i386
+  if (m_usingVXD) {
+    CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
+  } else
+#endif
+  {
+    DWORD bytes = 0;
     DeviceIoControl(m_outputDevice, FSCTL_UNLOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL);
     DeviceIoControl(m_outputDevice, IOCTL_DISK_UPDATE_PROPERTIES, NULL, 0, NULL, 0, &bytes, NULL);
     CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
+  }
+
+  if (success) {
+    CString msg;
+    msg.LoadString(IDS_SUCCESS);
+    m_output += msg;
+    UpdateData(FALSE);
   }
 }
 

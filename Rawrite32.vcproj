@@ -212,6 +212,10 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath=".\Decompress.cpp"
+				>
+			</File>
+			<File
 				RelativePath="Hash.cpp"
 				>
 				<FileConfiguration
@@ -312,6 +316,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath=".\Decompress.h"
+				>
+			</File>
 			<File
 				RelativePath=".\Hash.h"
 				>

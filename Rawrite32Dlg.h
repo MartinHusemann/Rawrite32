@@ -72,6 +72,7 @@ protected:
   HANDLE m_inputMapping;  // file mapping handle
   DWORD64 m_inputFileSize;// file size of input image
   DWORD64 m_fileOffset;   // current offset of mapping view
+  DWORD64 m_sizeWritten;  // bytes written to output device
   const BYTE *m_fsImage;  // input image
   size_t m_fsImageSize;   // size of input image
 
@@ -81,11 +82,11 @@ protected:
   // during decompression:
   const BYTE *m_curInput; // pointer to next input data
   size_t m_sizeRemaining; // unread data past m_curInput
-  DWORD m_sectorOut;      // next sector to write
   HANDLE m_outputDevice;  // handle of the output device
+  BYTE *m_outputBuffer;   // decompression target, write buffer
+  
 #ifdef _M_IX86            // special case for legacy versions on arch=i386
-  BYTE *m_partialSector;  // if we are writing via VXD only full sectors can be transfered,
-  DWORD m_partialSize;    // so if uncompression delivers a partial block, we have to keep that around
+  DWORD m_sectorOut;      // next sector to write
   bool m_usingVXD;        // true if we are on Win9x and can't write raw devices directly
 #endif
 
