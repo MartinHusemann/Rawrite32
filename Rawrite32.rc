@@ -105,6 +105,7 @@ BEGIN
     IDS_START_HINT          "Select a filesystem image (and optional a target drive)."
     IDP_BAD_SKIP            "Illegal sector skip Value!"
     IDS_HELP_URL            "help/Rawrite32.htm"
+    IDS_CALCULATING_HASHES  "Calculating hashes..."
 END
 
 #endif    // English (U.S.) resources

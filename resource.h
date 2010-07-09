@@ -28,6 +28,7 @@
 #define IDC_DRIVES                      1004
 #define IDC_SURF_HOME                   1005
 #define IDC_SECTOR_SKIP                 1006
+#define IDS_CALCULATING_HASHES          1007
 
 // Next default values for new objects
 // 

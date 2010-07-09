@@ -96,6 +96,7 @@ protected:
   bool VerifyInput();                 // return TRUE if "WriteToDisk" button has been enabled
   void CalcHashes(CString &out);      // calculate hahes and format proper output
   void WaitAndPoll(const vector<HANDLE>&);  // wait for all objects passed, handling paint and other important messages
+  void Poll();                        // handle all waiting messages
   void MapInputView();                // map the next block at the current input offset
   bool AdvanceMapOffset();            // advance the input offset, return false if past end of file
 

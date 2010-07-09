@@ -567,6 +567,9 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
   m_inputMapping = CreateFileMapping(m_inputFile, NULL, PAGE_READONLY, sizeHigh, m_fsImageSize, NULL);
   if (m_inputMapping != NULL) {
     m_inputFileSize = (DWORD64)m_fsImageSize | ((DWORD64)sizeHigh<<32);
+    m_output.LoadString(IDS_CALCULATING_HASHES);
+    UpdateData(FALSE);
+    Poll();
     CString hashValues;
     CalcHashes(hashValues);
     CString size;
@@ -663,6 +666,7 @@ UINT __cdecl hashThreadWorker(void *token)
 
 void CRawrite32Dlg::CalcHashes(CString &out)
 {
+  CWaitCursor hourglass;
   vector<HashThreadState> hashes;
   vector<HANDLE> handles;
   {
@@ -684,6 +688,7 @@ void CRawrite32Dlg::CalcHashes(CString &out)
     AfxBeginThread(hashThreadWorker, &hashes[i]);
 
   // loop over the whole input file
+  EnableWindow(FALSE);
   m_fileOffset = 0;
   for (;;) {
     MapInputView();
@@ -695,6 +700,7 @@ void CRawrite32Dlg::CalcHashes(CString &out)
     WaitAndPoll(handles);
     if (!AdvanceMapOffset()) break;
   }
+  EnableWindow();
   // done, notify worker threads
   for (size_t i = 0; i < hashes.size(); i++) {
     hashes[i].input = NULL;
@@ -716,15 +722,20 @@ void CRawrite32Dlg::CalcHashes(CString &out)
   out = t;
 }
 
+void CRawrite32Dlg::Poll()
+{
+  MSG msg;
+  while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+    TranslateMessage(&msg);
+    DispatchMessage(&msg);
+  }
+}
+
 void CRawrite32Dlg::WaitAndPoll(const vector<HANDLE> &handles)
 {
   for (;;) {
     DWORD res = MsgWaitForMultipleObjects(handles.size(), &handles[0], TRUE, INFINITE, QS_PAINT|QS_TIMER);
     if (res >= WAIT_OBJECT_0 && res < WAIT_OBJECT_0+handles.size()) return;
-    MSG msg;
-    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-      TranslateMessage(&msg);
-      DispatchMessage(&msg);
-    }
+    Poll();
   }
 }
