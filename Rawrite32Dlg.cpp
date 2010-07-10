@@ -646,7 +646,7 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
     CString size;
     FormatSize(m_inputFileSize, size);
     m_output.Format(IDS_MESSAGE_INPUT_HASHES, m_imageName, size);
-    m_output += hashValues;
+    m_output += "\r\n" + hashValues;
     // show message
     UpdateData(FALSE);
     retVal = true;
