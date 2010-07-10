@@ -408,6 +408,7 @@ void CRawrite32Dlg::OnWriteImage()
     return;
 
   bool success = true;
+  DWORD secSize = 512;
 #ifdef _M_IX86  // special case for legacy versions on arch=i386
   if (m_usingVXD) {
     // Windows 9x: can't write to devices, need DOS services via vwin32.vdx
@@ -435,6 +436,9 @@ void CRawrite32Dlg::OnWriteImage()
       return;
     }
 
+    DISK_GEOMETRY_EX diskInfo;
+    if (DeviceIoControl(m_outputDevice, IOCTL_DISK_GET_DRIVE_GEOMETRY_EX, NULL, 0, &diskInfo, sizeof diskInfo, &bytes, NULL))
+      secSize = diskInfo.Geometry.BytesPerSector;
 
     if (m_sectorSkip)
       SetFilePointer(m_outputDevice, m_sectorSkip*SECTOR_SIZE, NULL, FILE_BEGIN);
@@ -466,10 +470,23 @@ void CRawrite32Dlg::OnWriteImage()
       outData = m_outputBuffer;
       outSize =  OUTPUT_BUF_SIZE - decomp->outputSpace();
     } else {
-      outData = m_fsImage;
+      if (m_fsImageSize % secSize) {
+        // will need padding, copy over to writable buffer
+        memcpy(m_outputBuffer, m_fsImage, m_fsImageSize);
+        outData = m_outputBuffer;
+      } else {
+        outData = m_fsImage;
+      }
       outSize = m_fsImageSize;
     }
-
+    // pad output, if needed
+    if (outSize % secSize) {
+      ASSERT(outData == m_outputBuffer);
+      DWORD fill = secSize - (outSize % secSize);
+      memset(m_outputBuffer+outSize, 0, fill);
+      outSize += fill;
+    }
+    ASSERT(outSize % secSize == 0);
 
 #ifdef _M_IX86
     if (m_usingVXD) {
