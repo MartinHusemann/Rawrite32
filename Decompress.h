@@ -1,4 +1,4 @@
-/*	$Id: Hash.cpp -1   $	*/
+/*	$Id$	*/
 
 /*-
  * Copyright (c) 2000-2003,2010 The NetBSD Foundation, Inc.

@@ -1,4 +1,4 @@
-/*	$Id: Hash.cpp -1   $	*/
+/*	$Id$	*/
 
 /*-
  * Copyright (c) 2000-2003,2010 The NetBSD Foundation, Inc.
@@ -35,6 +35,7 @@
 extern "C" {
 #include "zlib/zlib.h"
 }
+#include "bz2lib/bzlib.h"
 
 #include "Decompress.h"
 
@@ -173,9 +174,98 @@ void CGzipDecompressor::Delete()
   delete this;
 }
 
+class CBZ2Decompressor : public IGenericDecompressor {
+public: 
+  static CBZ2Decompressor* Open(const BYTE *data, size_t len);
+  virtual bool isError();
+  virtual bool allDone();
+  virtual bool needInputData();
+  virtual void AddInputData(const BYTE *data, size_t len);
+  virtual void SetOutputSpace(BYTE *out, size_t len);
+  virtual size_t outputSpace();
+  virtual void Delete();
+protected:
+  CBZ2Decompressor(const BYTE *data, size_t len);
+  void Process();
+protected:
+  bz_stream m_decomp;
+  bool m_eof, m_error;
+};
+
+CBZ2Decompressor* CBZ2Decompressor::Open(const BYTE *inputData, size_t inputSize)
+{
+  if (inputSize > 10 &&  inputData[0] == 'B' && inputData[1] == 'Z' && inputData[2] == 'h'
+    && inputData[3] >= '0' && inputData[3] <= '9')
+      return new CBZ2Decompressor(inputData, inputSize);
+  return NULL;
+}
+
+CBZ2Decompressor::CBZ2Decompressor(const BYTE *data, size_t len)
+: m_eof(false), m_error(false)
+{
+  memset(&m_decomp, 0, sizeof m_decomp);
+  m_decomp.next_in = (char*)data;
+  m_decomp.avail_in = len;
+  BZ2_bzDecompressInit(&m_decomp,0,0);
+}
+
+bool CBZ2Decompressor::isError()
+{
+  return m_error;
+}
+
+bool CBZ2Decompressor::allDone()
+{
+  return m_eof;
+}
+
+bool CBZ2Decompressor::needInputData()
+{
+  return m_decomp.avail_in == 0;
+}
+
+void CBZ2Decompressor::Process()
+{
+  int res = BZ2_bzDecompress(&m_decomp);
+  if (res < 0) {
+    m_error = true;
+    return;
+  }
+  if (res == BZ_STREAM_END) {
+    m_eof = true;
+    BZ2_bzDecompressEnd(&m_decomp);
+  }
+}
+
+void CBZ2Decompressor::AddInputData(const BYTE *data, size_t len)
+{
+  m_decomp.next_in = (char*)data;
+  m_decomp.avail_in = len;
+  Process();
+}
+
+void CBZ2Decompressor::SetOutputSpace(BYTE *out, size_t len)
+{
+  m_decomp.next_out = (char*)out;
+  m_decomp.avail_out = len;
+  Process();
+}
+
+size_t CBZ2Decompressor::outputSpace()
+{
+  return m_decomp.avail_out;
+}
+
+void CBZ2Decompressor::Delete()
+{
+  delete this;
+}
+
 IGenericDecompressor *StartDecompress(const BYTE *data, size_t len)
 {
   IGenericDecompressor *decomp = CGzipDecompressor::Open(data, len);
+  if (decomp) return decomp;
+  decomp = CBZ2Decompressor::Open(data, len);
   if (decomp) return decomp;
   return NULL;
 }
