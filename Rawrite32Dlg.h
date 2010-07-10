@@ -99,6 +99,7 @@ protected:
   void Poll();                        // handle all waiting messages
   void MapInputView();                // map the next block at the current input offset
   bool AdvanceMapOffset();            // advance the input offset, return false if past end of file
+  void FormatSize(DWORD64, CString&); // format a human readable size from a value in bytes
 
 
 protected:

@@ -29,6 +29,7 @@
 #define IDC_SURF_HOME                   1005
 #define IDC_SECTOR_SKIP                 1006
 #define IDS_CALCULATING_HASHES          1007
+#define IDP_DECOMP_ERROR                1008
 
 // Next default values for new objects
 // 

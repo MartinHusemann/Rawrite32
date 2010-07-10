@@ -94,7 +94,7 @@ BEGIN
     IDP_ARE_YOU_SURE        "Are you sure you would like to write the loaded image to drive %s ?\r\nATTENTION: this will destroy all contents of the disk in that drive!"
     IDP_NO_DISK             "Could not access device!\r\nMake sure a medium is inserted and you have administrative privileges."
     IDP_WRITE_ERROR         "Error writing to disk!"
-    IDS_SUCCESS             "\r\nImage successfully written to disk."
+    IDS_SUCCESS             "\r\n%s successfully written to disk."
     IDP_NO_VXD              "Internal error: could not connect to vwin32.vxd!"
     IDP_CANT_LOCK_DISK      "Can not lock drive for exclusive access!"
 END
@@ -106,6 +106,7 @@ BEGIN
     IDP_BAD_SKIP            "Illegal sector skip Value!"
     IDS_HELP_URL            "help/Rawrite32.htm"
     IDS_CALCULATING_HASHES  "Calculating hashes..."
+    IDP_DECOMP_ERROR        "Decompression error - image broken?"
 END
 
 #endif    // English (U.S.) resources

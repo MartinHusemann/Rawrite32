@@ -42,6 +42,10 @@ extern "C" {
 #include "NetBSD/sys/sha2.h"
 }
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 class CHashMD5 : public IGenericHash {
 public:
   CHashMD5()

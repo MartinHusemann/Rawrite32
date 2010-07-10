@@ -32,12 +32,12 @@
  */
 
 interface IGenericDecompressor {
+  virtual bool isError() PURE;          // decompressor encountered some error
   virtual bool allDone() PURE;          // return true if decompress finished
   virtual bool needInputData() PURE;    // return true if caller should add more input data
-  virtual bool outOfOutputSpace() PURE; // return true if output space has been exhausted
   virtual void AddInputData(const BYTE *data, size_t len) PURE;
   virtual void SetOutputSpace(BYTE *out, size_t len) PURE;
-  virtual size_t outputLength() PURE;   // return size of the output buffer filled so far
+  virtual size_t outputSpace() PURE;   // return size of the output buffer filled so far
   virtual void Delete() PURE;
 };
 

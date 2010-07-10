@@ -41,8 +41,6 @@
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
 #endif
 
 // XXX - just blindly assume we write to a 512-bye sectored medium for now
@@ -447,8 +445,31 @@ void CRawrite32Dlg::OnWriteImage()
   m_fsImageSize = 0;
   MapInputView();
   IGenericDecompressor *decomp = StartDecompress(m_fsImage, m_fsImageSize);
+  if (decomp) decomp->SetOutputSpace(m_outputBuffer, OUTPUT_BUF_SIZE);
 
   for (;;) {
+
+    const BYTE *outData = NULL;
+    DWORD outSize = 0;
+
+    if (decomp) {
+      if (decomp->isError()) break;
+      if (decomp->allDone()) break;
+      if (decomp->needInputData()) {
+        UnmapViewOfFile(m_fsImage);
+        if (!AdvanceMapOffset()) break;
+        MapInputView();
+        decomp->AddInputData(m_fsImage, m_fsImageSize);
+      }
+      if (decomp->outputSpace() > 0) continue;
+      if (decomp->outputSpace() == OUTPUT_BUF_SIZE) continue;
+      outData = m_outputBuffer;
+      outSize =  OUTPUT_BUF_SIZE - decomp->outputSpace();
+    } else {
+      outData = m_fsImage;
+      outSize = m_fsImageSize;
+    }
+
 
 #ifdef _M_IX86
     if (m_usingVXD) {
@@ -475,9 +496,9 @@ void CRawrite32Dlg::OnWriteImage()
        */
       drive.MakeUpper();
       reg.reg_EAX = drive[0] - 'A';
-      reg.reg_ECX = m_fsImageSize / SECTOR_SIZE;
+      reg.reg_ECX = outSize / SECTOR_SIZE;
       reg.reg_EDX = m_sectorOut;
-      reg.reg_EBX = (DWORD)m_fsImage;
+      reg.reg_EBX = (DWORD)outData;
       reg.reg_Flags = 0x0001; // assume error
 
       DWORD cb = 0;
@@ -487,14 +508,18 @@ void CRawrite32Dlg::OnWriteImage()
         success = false;
         break;
       }
-      m_sectorOut += m_fsImageSize / SECTOR_SIZE;
-      m_sizeWritten += m_fsImageSize;
+      m_sectorOut += outSize / SECTOR_SIZE;
+      m_sizeWritten += outSize;
 
     } else
 #endif // not i386
     {
       DWORD written = 0;
-      if (!WriteFile(m_outputDevice, m_fsImage, m_fsImageSize, &written, NULL) || written != m_fsImageSize) {
+      if (!WriteFile(m_outputDevice, outData, outSize, &written, NULL) || written != outSize) {
+#ifdef _DEBUG
+        DWORD err = ::GetLastError();
+        TRACE("Error code %d\n", err);
+#endif
         AfxMessageBox(IDP_WRITE_ERROR);
         success = false;
         break;
@@ -502,9 +527,13 @@ void CRawrite32Dlg::OnWriteImage()
       m_sizeWritten += written;
     }
 
-    UnmapViewOfFile(m_fsImage); m_fsImage = NULL;
-    if (!AdvanceMapOffset()) break;
-    MapInputView();
+    if (decomp && decomp->outputSpace() == 0)
+      decomp->SetOutputSpace(m_outputBuffer, OUTPUT_BUF_SIZE);
+    if (!decomp) {
+      UnmapViewOfFile(m_fsImage);
+      if (!AdvanceMapOffset()) break;
+      MapInputView();
+    }
   }
 
   if (m_fsImage) { UnmapViewOfFile(m_fsImage); m_fsImage = NULL; }
@@ -521,9 +550,21 @@ void CRawrite32Dlg::OnWriteImage()
     CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
   }
 
+  if (decomp) {
+    if (decomp->isError()) {
+      CString msg;
+      msg.LoadString(IDP_DECOMP_ERROR);
+      m_output += "\r\n" + msg;
+      UpdateData(FALSE);
+      success = false;
+    }
+    decomp->Delete();
+  }
+
   if (success) {
-    CString msg;
-    msg.LoadString(IDS_SUCCESS);
+    CString msg, len;
+    FormatSize(m_sizeWritten, len);
+    msg.Format(IDS_SUCCESS, len);
     m_output += msg;
     UpdateData(FALSE);
   }
@@ -553,6 +594,19 @@ bool CRawrite32Dlg::AdvanceMapOffset()
   return m_fileOffset < m_inputFileSize;
 }
 
+void CRawrite32Dlg::FormatSize(DWORD64 sz, CString &out)
+{
+  if (sz > 1024*1024) {
+    double v = (double)sz/(double)(1024*1024);
+    if (v < 1024.0)
+      out.Format("%.1fMB", v);
+    else
+      out.Format("%.2fGB", v/1024.0);
+  } else {
+    out.Format("%luB", (DWORD)sz);
+  }
+}
+
 bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
 {
   CWaitCursor hourglass;
@@ -573,15 +627,7 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
     CString hashValues;
     CalcHashes(hashValues);
     CString size;
-    if (m_inputFileSize > 1024*1024) {
-      double v = (double)m_inputFileSize/(double)(1024*1024);
-      if (v < 1024.0)
-        size.Format("%.1f MByte", v);
-      else
-        size.Format("%.2f GByte", v/1024.0);
-    } else {
-      size.Format("%lu Byte", m_fsImageSize);
-    }
+    FormatSize(m_inputFileSize, size);
     m_output.Format(IDS_MESSAGE_INPUT_HASHES, m_imageName, size);
     m_output += hashValues;
     // show message

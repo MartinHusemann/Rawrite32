@@ -38,74 +38,28 @@ extern "C" {
 
 #include "Decompress.h"
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 class CGzipDecompressor : public IGenericDecompressor {
 public: 
   static CGzipDecompressor* Open(const BYTE *data, size_t len);
+  virtual bool isError();
   virtual bool allDone();
   virtual bool needInputData();
-  virtual bool outOfOutputSpace();
   virtual void AddInputData(const BYTE *data, size_t len);
   virtual void SetOutputSpace(BYTE *out, size_t len);
-  virtual size_t outputLength();
+  virtual size_t outputSpace();
   virtual void Delete();
 protected:
   CGzipDecompressor(const BYTE *data, size_t len);
+  void Process();
 protected:
   z_stream_s m_decomp;
   DWORD m_crc;
-  bool m_eof;
+  bool m_eof, m_error;
 };
-
-#if 0
-BOOL CRawrite32Dlg::UnzipImage(LPBYTE inputData, DWORD inputSize)
-{
-  if (!SkipGzipHeader(inputData, inputSize)) return FALSE;
-
-  // get the uncompressed size
-  LPBYTE p = inputData + inputSize - 4;
-  DWORD outAllocSize = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
-
-  z_stream_s decomp;
-  memset(&decomp, 0, sizeof decomp);
-  LPBYTE outData = new BYTE[outAllocSize];
-  decomp.next_out = outData;
-  decomp.avail_out = outAllocSize;
-  decomp.next_in = inputData;
-  decomp.avail_in = inputSize;
-
-  int ret;
-  ret = inflateInit2(&decomp, -MAX_WBITS);
-  if (ret >= 0) {
-    ret = inflate(&decomp, Z_SYNC_FLUSH);
-    if (ret == Z_STREAM_END) {
-      DWORD crc = crc32(0L, Z_NULL, 0);
-      crc = crc32(crc, outData, decomp.total_out);
-      DWORD crcSrc = 0;
-      LPBYTE p = decomp.next_in;
-      crcSrc = p[0];
-      crcSrc |= p[1] << 8;
-      crcSrc |= p[2] << 16;
-      crcSrc |= p[3] << 24;
-      if (crcSrc != crc)
-        ret = -1;
-    }
-    inflateEnd(&decomp);
-  }
-
-  if (ret >= 0) {
-    m_fsImageSize = decomp.total_out;
-    if (m_fsImageSize % SECTOR_SIZE) m_fsImageSize = SECTOR_SIZE*(m_fsImageSize/SECTOR_SIZE+1);
-    m_fsImage = new BYTE[m_fsImageSize];
-    if (m_fsImageSize != decomp.total_out)
-      memset(m_fsImage, 0, m_fsImageSize);
-    memcpy(m_fsImage, outData, m_fsImageSize);
-  }
-
-  delete outData;
-
-  return ret >= 0;
-}
-#endif
 
 CGzipDecompressor* CGzipDecompressor::Open(const BYTE *inputData, size_t inputSize)
 {
@@ -124,7 +78,7 @@ CGzipDecompressor* CGzipDecompressor::Open(const BYTE *inputData, size_t inputSi
       || (inputData[0] == 0x1f && inputData[1] == 0x9e))  // gzip old and new magic header
   {
     BYTE method = inputData[2];
-    if (method != DEFLATED) return FALSE;
+    if (method != DEFLATED) return NULL;
     BYTE flags = inputData[3];
     const BYTE *p = inputData + 10;
     if (flags & CONTINUATION) p++;
@@ -147,12 +101,18 @@ CGzipDecompressor* CGzipDecompressor::Open(const BYTE *inputData, size_t inputSi
 }
 
 CGzipDecompressor::CGzipDecompressor(const BYTE *data, size_t len)
+: m_eof(false), m_error(false)
 {
   memset(&m_decomp, 0, sizeof m_decomp);
   m_decomp.next_in = (BYTE*)data;
   m_decomp.avail_in = len;
   m_crc = crc32(0L, Z_NULL, 0);
-  m_eof = false;
+  inflateInit2(&m_decomp,-MAX_WBITS);
+}
+
+bool CGzipDecompressor::isError()
+{
+  return m_error;
 }
 
 bool CGzipDecompressor::allDone()
@@ -165,18 +125,16 @@ bool CGzipDecompressor::needInputData()
   return m_decomp.avail_in == 0;
 }
 
-bool CGzipDecompressor::outOfOutputSpace()
+void CGzipDecompressor::Process()
 {
-  return m_decomp.avail_out == 0;
-}
-
-void CGzipDecompressor::AddInputData(const BYTE *data, size_t len)
-{
-  const BYTE *out = m_decomp.next_out;
-  m_decomp.next_in = (BYTE*)data;
-  m_decomp.avail_in = len;
+  BYTE *out = m_decomp.next_out;
   int res = inflate(&m_decomp, Z_SYNC_FLUSH);
-  m_crc = crc32(m_crc, out, m_decomp.next_out-out);
+  if (res < 0) {
+    m_error = true;
+    return;
+  }
+  if (out != m_decomp.next_out)
+    m_crc = crc32(m_crc, out, m_decomp.next_out-out);
   if (res == Z_STREAM_END) {
     m_eof = true;
     DWORD crcSrc = 0;
@@ -186,18 +144,26 @@ void CGzipDecompressor::AddInputData(const BYTE *data, size_t len)
     crcSrc |= p[2] << 16;
     crcSrc |= p[3] << 24;
     if (crcSrc != m_crc)
-      ASSERT(FALSE);
+      m_error = true;
     inflateEnd(&m_decomp);
   }
+}
+
+void CGzipDecompressor::AddInputData(const BYTE *data, size_t len)
+{
+  m_decomp.next_in = (BYTE*)data;
+  m_decomp.avail_in = len;
+  Process();
 }
 
 void CGzipDecompressor::SetOutputSpace(BYTE *out, size_t len)
 {
   m_decomp.next_out = out;
   m_decomp.avail_out = len;
+  Process();
 }
 
-size_t CGzipDecompressor::outputLength()
+size_t CGzipDecompressor::outputSpace()
 {
   return m_decomp.avail_out;
 }
