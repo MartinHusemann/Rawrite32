@@ -88,7 +88,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AdditionalManifestFiles="rawrite32.admin.manifest"
+				AdditionalManifestFiles="rawrite32.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -182,7 +182,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				AdditionalManifestFiles="rawrite32.admin.manifest"
+				AdditionalManifestFiles="rawrite32.manifest"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -351,6 +351,10 @@
 			>
 			<File
 				RelativePath="res\Rawrite32.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\rawrite32.manifest"
 				>
 			</File>
 		</Filter>
