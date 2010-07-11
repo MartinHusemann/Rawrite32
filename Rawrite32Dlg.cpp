@@ -656,15 +656,21 @@ bool CRawrite32Dlg::AdvanceMapOffset()
 
 void CRawrite32Dlg::FormatSize(DWORD64 sz, CString &out)
 {
+  CString unit, t;
   if (sz > 1024*1024) {
     double v = (double)sz/(double)(1024*1024);
-    if (v < 1024.0)
-      out.Format("%.1fMB", v);
-    else
-      out.Format("%.2fGB", v/1024.0);
+    if (v < 1024.0) {
+      t.Format("%.1f", v);
+      unit.LoadString(IDS_SIZE_MBYTE);
+    } else {
+      t.Format("%.2f", v/1024.0);
+      unit.LoadString(IDS_SIZE_GBYTE);
+    }
   } else {
-    out.Format("%luB", (DWORD)sz);
+    t.Format("%lu", (DWORD)sz);
+    unit.LoadString(IDS_SIZE_BYTE);
   }
+  out = t + " " + unit;
 }
 
 bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)

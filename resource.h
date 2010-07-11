@@ -32,6 +32,9 @@
 #define IDP_DECOMP_ERROR                1008
 #define IDC_PROGRESS                    1009
 #define IDS_WRITE_PROGRESS              1010
+#define IDS_SIZE_BYTE                   1011
+#define IDS_SIZE_MBYTE                  1012
+#define IDS_SIZE_GBYTE                  1013
 
 // Next default values for new objects
 // 
