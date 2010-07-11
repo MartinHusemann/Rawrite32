@@ -259,6 +259,11 @@ BOOL CRawrite32Dlg::OnInitDialog()
 {
   CDialog::OnInitDialog();
 
+  m_outWinFont.CreateFont(-12, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET,
+                          OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+                          FIXED_PITCH|FF_DONTCARE, NULL);
+  GetDlgItem(IDC_OUTPUT)->SetFont(&m_outWinFont);
+
   // Add "About..." menu item to system menu.
 
   // IDM_ABOUTBOX must be in the system command range.
@@ -308,7 +313,7 @@ BOOL CRawrite32Dlg::OnInitDialog()
 
   if (m_imageName)
     GetDlgItem(IDC_IMAGE_NAME)->SetWindowText(m_imageName);
-  
+
   return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -671,7 +676,7 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
     CString size;
     FormatSize(m_inputFileSize, size);
     m_output.Format(IDS_MESSAGE_INPUT_HASHES, m_imageName, size);
-    m_output += "\r\n" + hashValues;
+    m_output += "\r\n" + hashValues + "\r\n";
     // show message
     UpdateData(FALSE);
     retVal = true;
@@ -754,7 +759,6 @@ UINT __cdecl hashThreadWorker(void *token)
 
 void CRawrite32Dlg::CalcHashes(CString &out)
 {
-  CWaitCursor hourglass;
   vector<HashThreadState> hashes;
   vector<HANDLE> handles;
   {
@@ -800,9 +804,15 @@ void CRawrite32Dlg::CalcHashes(CString &out)
   // collect output
   CString t;
   for (size_t i = 0; i < hashes.size(); i++) {
-    CString name(hashes[i].hashImpl->HashName());
-    CString out; hashes[i].hashImpl->HashResult(out);
-    t += "\r\n" + name + ": " + out;
+    enum { outSplitLen = 64 };
+    CString out,name,p; hashes[i].hashImpl->HashResult(out);
+    name.Format("%-8s", hashes[i].hashImpl->HashName());
+    t += "\r\n" + name;
+    while (out.GetLength() > outSplitLen) {
+      t += out.Left(outSplitLen) + "\r\n        ";
+      out = out.Mid(outSplitLen);
+    }
+    t += out;
     hashes[i].hashImpl->Delete();
     CloseHandle(hashes[i].DataAvailable);
     CloseHandle(hashes[i].DataDone);

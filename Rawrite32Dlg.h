@@ -66,6 +66,7 @@ public:
 protected:
 	HICON m_hIcon;          // program icon
   HICON m_hSmallIcon;     // and a small variant of it
+  CFont m_outWinFont;
 
   CString m_imageName;    // file path of the input image
 
