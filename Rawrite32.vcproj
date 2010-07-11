@@ -423,6 +423,7 @@
 						<Tool
 							Name="VCCLCompilerTool"
 							AdditionalIncludeDirectories="NetBSD"
+							PreprocessorDefinitions="HAVE_NBTOOL_CONFIG_H"
 							UsePrecompiledHeader="0"
 						/>
 					</FileConfiguration>
