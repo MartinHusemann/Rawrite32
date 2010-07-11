@@ -43,14 +43,14 @@
 #define new DEBUG_NEW
 #endif
 
-// XXX - just blindly assume we write to a 512-bye sectored medium for now
-#define SECTOR_SIZE   512
+// XXX - just blindly assume we write to a 512-bye sectored medium if using old (win9x) systems.
+#define SECTOR_SIZE   512 // this value is not used on WinNT based systems
 
 // size of the view into the input image
-#define MAP_VIEW_SIZE 0x10000
+#define MAP_VIEW_SIZE (16*1024*1024)
 
 // size of the decompression buffer
-#define OUTPUT_BUF_SIZE (1*1024*1024)
+#define OUTPUT_BUF_SIZE (64*1024*1024)
 
 #ifdef _M_IX86
 // only needed on arch=i386, otherwise assume NT anyway
@@ -469,9 +469,10 @@ void CRawrite32Dlg::OnWriteImage()
       double full = (double)m_inputFileSize, cur = (double)m_fileOffset;
       int perc = (int)(cur/full*100.0+.5);
       m_progress.SetPos(perc);
-      CString st, out;
-      FormatSize(m_sizeWritten, st);
-      out.Format(IDS_WRITE_PROGRESS, st);
+      CString si, sw, out;
+      FormatSize(m_fileOffset, si);
+      FormatSize(m_sizeWritten, sw);
+      out.Format(IDS_WRITE_PROGRESS, si, sw);
       ow->SetWindowText(out);
       Poll();
     }
@@ -480,17 +481,19 @@ void CRawrite32Dlg::OnWriteImage()
     DWORD outSize = 0;
 
     if (decomp) {
-      if (decomp->isError()) break;
+      if (decomp->isError()) 
+        break;
       if (decomp->needInputData()) {
         UnmapViewOfFile(m_fsImage);
-        if (!AdvanceMapOffset()) break;
-        MapInputView();
-        decomp->AddInputData(m_fsImage, m_fsImageSize);
-        if (decomp->outputSpace() > 0 && decomp->needInputData())
-          continue;
+        if (AdvanceMapOffset() && MapInputView()) {
+          decomp->AddInputData(m_fsImage, m_fsImageSize);
+          if (decomp->outputSpace() > 0 && decomp->needInputData())
+            continue;
+        }
       }
       if (decomp->outputSpace() == OUTPUT_BUF_SIZE) {
-        if (decomp->allDone()) break;
+        if (decomp->allDone()) 
+          break;
         continue;
       }
       outData = m_outputBuffer;
@@ -578,7 +581,7 @@ void CRawrite32Dlg::OnWriteImage()
     if (!decomp) {
       UnmapViewOfFile(m_fsImage);
       if (!AdvanceMapOffset()) break;
-      MapInputView();
+      if (!MapInputView()) break;
     }
   }
   m_progress.ShowWindow(SW_HIDE);
@@ -625,20 +628,30 @@ void CRawrite32Dlg::CloseInputFile()
   CloseHandle(m_inputFile); m_inputFile = INVALID_HANDLE_VALUE;
 }
 
-void CRawrite32Dlg::MapInputView()
+bool CRawrite32Dlg::MapInputView()
 {
   if (m_fsImage) UnmapViewOfFile(m_fsImage);
   DWORD64 remaining = MAP_VIEW_SIZE;
   if (m_inputFileSize - m_fileOffset < MAP_VIEW_SIZE)
     remaining = m_inputFileSize - m_fileOffset;
-  m_fsImageSize = (DWORD)remaining;
-  m_fsImage = (const BYTE *)MapViewOfFile(m_inputMapping, FILE_MAP_READ, (DWORD)(m_fileOffset >> 32), (DWORD)m_fileOffset, m_fsImageSize);
+  if (remaining == 0) {
+    m_fsImageSize = 0;
+    m_fsImage = NULL;
+    return false;
+  } else {
+    m_fsImageSize = (DWORD)remaining;
+    m_fsImage = (const BYTE *)MapViewOfFile(m_inputMapping, FILE_MAP_READ, (DWORD)(m_fileOffset >> 32), (DWORD)m_fileOffset, m_fsImageSize);
+    return true;
+  }
 }
 
 bool CRawrite32Dlg::AdvanceMapOffset()
 {
+  if (m_fileOffset >= m_inputFileSize) return false;
   m_fileOffset += MAP_VIEW_SIZE;
-  return m_fileOffset < m_inputFileSize;
+  if (m_fileOffset > m_inputFileSize)
+    m_fileOffset = m_inputFileSize;
+  return true;
 }
 
 void CRawrite32Dlg::FormatSize(DWORD64 sz, CString &out)
@@ -661,6 +674,7 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
 
   CloseInputFile();
   m_inputFileSize = 0;
+  m_sizeWritten = 0;
   m_inputFile = hFile;
 
   DWORD sizeHigh = 0;
@@ -743,6 +757,8 @@ struct HashThreadState {
   HANDLE DataAvailable, DataDone;
   const BYTE *input;
   DWORD inputLen;
+  DWORD64 inputFileTotalSize, inputDataUsed;
+  volatile LONG percDone;
 };
 
 UINT __cdecl hashThreadWorker(void *token)
@@ -751,7 +767,17 @@ UINT __cdecl hashThreadWorker(void *token)
   for (;;) {
     WaitForSingleObject(hash->DataAvailable, INFINITE);
     if (hash->input == NULL) break;
-    hash->hashImpl->AddData(hash->input, hash->inputLen);
+    while (hash->inputLen) {
+      DWORD chunk = hash->inputLen;
+      if (chunk > 8*1024)
+        chunk = 8*1024;
+      hash->hashImpl->AddData(hash->input, chunk);
+      hash->inputDataUsed += chunk;
+      hash->inputLen -= chunk;
+      hash->input += chunk;
+      DWORD perc = (DWORD)((double)hash->inputDataUsed/(double)hash->inputFileTotalSize*100.0);
+      InterlockedExchange(&hash->percDone, perc);
+    }
     SetEvent(hash->DataDone);
   }
   return 0;
@@ -759,6 +785,11 @@ UINT __cdecl hashThreadWorker(void *token)
 
 void CRawrite32Dlg::CalcHashes(CString &out)
 {
+  CWnd *ow = GetDlgItem(IDC_OUTPUT);
+  CRect owr, pgr; ow->GetWindowRect(&owr); ScreenToClient(&owr);
+  m_progress.GetWindowRect(&pgr);
+  ow->SetWindowPos(NULL, owr.left, owr.top, owr.Width(), owr.Height()-pgr.Height(), SWP_NOACTIVATE|SWP_NOZORDER);
+
   vector<HashThreadState> hashes;
   vector<HANDLE> handles;
   {
@@ -770,10 +801,13 @@ void CRawrite32Dlg::CalcHashes(CString &out)
       s.hashImpl = funcs[i];
       s.DataAvailable = CreateEvent(NULL, FALSE, FALSE, NULL);
       s.DataDone = CreateEvent(NULL, FALSE, FALSE, NULL);
+      s.inputFileTotalSize = m_inputFileSize;
       handles.push_back(s.DataDone);
       hashes.push_back(s);
     }
   }
+  m_progress.SetRange32(0, 100*(int)hashes.size());
+  m_progress.ShowWindow(SW_SHOW);
 
   // create one worker thread per hash
   for (size_t i = 0; i < hashes.size(); i++)
@@ -783,13 +817,19 @@ void CRawrite32Dlg::CalcHashes(CString &out)
   EnableWindow(FALSE);
   m_fileOffset = 0;
   for (;;) {
-    MapInputView();
+    if (!MapInputView()) break;
     for (size_t i = 0; i < hashes.size(); i++) {
       hashes[i].input = m_fsImage;
       hashes[i].inputLen = m_fsImageSize;
       SetEvent(hashes[i].DataAvailable);
     }
-    WaitAndPoll(handles);
+    do {
+      DWORD perc = 0;
+      for (size_t i = 0; i < hashes.size(); i++)
+        perc += hashes[i].percDone;
+      m_progress.SetPos(perc);
+      Poll();
+    } while (WaitAndPoll(handles, 1500));
     if (!AdvanceMapOffset()) break;
   }
   EnableWindow();
@@ -818,6 +858,9 @@ void CRawrite32Dlg::CalcHashes(CString &out)
     CloseHandle(hashes[i].DataDone);
   }
   out = t;
+
+  m_progress.ShowWindow(SW_HIDE);
+  ow->SetWindowPos(NULL, owr.left, owr.top, owr.Width(), owr.Height(), SWP_NOACTIVATE|SWP_NOZORDER);
 }
 
 void CRawrite32Dlg::Poll()
@@ -830,11 +873,12 @@ void CRawrite32Dlg::Poll()
   SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
 }
 
-void CRawrite32Dlg::WaitAndPoll(const vector<HANDLE> &handles)
+bool CRawrite32Dlg::WaitAndPoll(const vector<HANDLE> &handles, DWORD timeout)
 {
   for (;;) {
-    DWORD res = MsgWaitForMultipleObjects(handles.size(), &handles[0], TRUE, INFINITE, QS_PAINT|QS_TIMER);
-    if (res >= WAIT_OBJECT_0 && res < WAIT_OBJECT_0+handles.size()) return;
+    DWORD res = MsgWaitForMultipleObjects(handles.size(), &handles[0], TRUE, timeout, QS_PAINT|QS_TIMER);
+    if (res >= WAIT_OBJECT_0 && res < WAIT_OBJECT_0+handles.size()) return false;
+    else if (res == WAIT_TIMEOUT) return true;
     Poll();
   }
 }

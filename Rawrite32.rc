@@ -111,7 +111,7 @@ END
 STRINGTABLE 
 BEGIN
     IDP_DECOMP_ERROR        "Decompression error - image broken?"
-    IDS_WRITE_PROGRESS      "%s written to target disk"
+    IDS_WRITE_PROGRESS      "%s input data processed,\r\n%s written to target disk"
 END
 
 #endif    // English (U.S.) resources

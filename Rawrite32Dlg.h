@@ -97,9 +97,10 @@ protected:
   void CloseInputFile();              // close input file and mapping
   bool VerifyInput();                 // return TRUE if "WriteToDisk" button has been enabled
   void CalcHashes(CString &out);      // calculate hahes and format proper output
-  void WaitAndPoll(const vector<HANDLE>&);  // wait for all objects passed, handling paint and other important messages
+    // wait for all objects passed, handling paint and other important messages
+  bool WaitAndPoll(const vector<HANDLE>&, DWORD timeout); // return true if timed out, false if we don't need to wait more
   void Poll();                        // handle all waiting messages
-  void MapInputView();                // map the next block at the current input offset
+  bool MapInputView();                // map the next block at the current input offset
   bool AdvanceMapOffset();            // advance the input offset, return false if past end of file
   void FormatSize(DWORD64, CString&); // format a human readable size from a value in bytes
 
