@@ -55,6 +55,7 @@ public:
   virtual void Delete();
 protected:
   CGzipDecompressor(const BYTE *data, size_t len);
+  ~CGzipDecompressor();
   void Process();
 protected:
   z_stream_s m_decomp;
@@ -111,6 +112,11 @@ CGzipDecompressor::CGzipDecompressor(const BYTE *data, size_t len)
   inflateInit2(&m_decomp,-MAX_WBITS);
 }
 
+CGzipDecompressor::~CGzipDecompressor()
+{
+  inflateEnd(&m_decomp);
+}
+
 bool CGzipDecompressor::isError()
 {
   return m_error;
@@ -146,7 +152,6 @@ void CGzipDecompressor::Process()
     crcSrc |= p[3] << 24;
     if (crcSrc != m_crc)
       m_error = true;
-    inflateEnd(&m_decomp);
   }
 }
 
@@ -186,6 +191,7 @@ public:
   virtual void Delete();
 protected:
   CBZ2Decompressor(const BYTE *data, size_t len);
+  ~CBZ2Decompressor();
   void Process();
 protected:
   bz_stream m_decomp;
@@ -207,6 +213,11 @@ CBZ2Decompressor::CBZ2Decompressor(const BYTE *data, size_t len)
   m_decomp.next_in = (char*)data;
   m_decomp.avail_in = len;
   BZ2_bzDecompressInit(&m_decomp,0,0);
+}
+
+CBZ2Decompressor::~CBZ2Decompressor()
+{
+  BZ2_bzDecompressEnd(&m_decomp);
 }
 
 bool CBZ2Decompressor::isError()
@@ -231,10 +242,8 @@ void CBZ2Decompressor::Process()
     m_error = true;
     return;
   }
-  if (res == BZ_STREAM_END) {
+  if (res == BZ_STREAM_END)
     m_eof = true;
-    BZ2_bzDecompressEnd(&m_decomp);
-  }
 }
 
 void CBZ2Decompressor::AddInputData(const BYTE *data, size_t len)
