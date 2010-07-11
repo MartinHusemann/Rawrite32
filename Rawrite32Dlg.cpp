@@ -469,7 +469,6 @@ void CRawrite32Dlg::OnWriteImage()
       out.Format(IDS_WRITE_PROGRESS, st);
       ow->SetWindowText(out);
       Poll();
-      SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
     }
 
     const BYTE *outData = NULL;
@@ -477,15 +476,18 @@ void CRawrite32Dlg::OnWriteImage()
 
     if (decomp) {
       if (decomp->isError()) break;
-      if (decomp->allDone()) break;
       if (decomp->needInputData()) {
         UnmapViewOfFile(m_fsImage);
         if (!AdvanceMapOffset()) break;
         MapInputView();
         decomp->AddInputData(m_fsImage, m_fsImageSize);
+        if (decomp->outputSpace() > 0 && decomp->needInputData())
+          continue;
       }
-      if (decomp->outputSpace() > 0) continue;
-      if (decomp->outputSpace() == OUTPUT_BUF_SIZE) continue;
+      if (decomp->outputSpace() == OUTPUT_BUF_SIZE) {
+        if (decomp->allDone()) break;
+        continue;
+      }
       outData = m_outputBuffer;
       outSize =  OUTPUT_BUF_SIZE - decomp->outputSpace();
     } else {
@@ -815,6 +817,7 @@ void CRawrite32Dlg::Poll()
     TranslateMessage(&msg);
     DispatchMessage(&msg);
   }
+  SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
 }
 
 void CRawrite32Dlg::WaitAndPoll(const vector<HANDLE> &handles)
