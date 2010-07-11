@@ -25,7 +25,6 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 // Dialog
 //
-
 IDD_RAWRITE32_DIALOG DIALOGEX 0, 0, 368, 200
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
@@ -37,6 +36,7 @@ BEGIN
     PUSHBUTTON      "&Select...",IDC_BROWSE,324,18,37,14
     LTEXT           "Program &messages:",IDC_STATIC,7,41,222,10
     LTEXT           "",IDC_OUTPUT,7,53,354,100,SS_SUNKEN
+    CONTROL         "",IDC_PROGRESS,"msctls_progress32",NOT WS_VISIBLE | WS_BORDER | PBS_SMOOTH,7,140,354,13
     LTEXT           "&Target drive:",IDC_STATIC,7,158,50,12
     COMBOBOX        IDC_DRIVES,61,156,85,58,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Sector s&kip:",IDC_STATIC,210,158,47,12
@@ -46,7 +46,6 @@ BEGIN
     DEFPUSHBUTTON   "Exit",IDOK,151,179,66,14
     PUSHBUTTON      "Help",ID_HELP,233,179,66,14
 END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -112,6 +111,7 @@ END
 STRINGTABLE 
 BEGIN
     IDP_DECOMP_ERROR        "Decompression error - image broken?"
+    IDS_WRITE_PROGRESS      "%s written to target disk"
 END
 
 #endif    // English (U.S.) resources
@@ -135,7 +135,7 @@ END
 
 3 TEXTINCLUDE 
 BEGIN
-    "#include ""version.rc\0"
+    "#include ""version.rc""\r\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -150,6 +150,7 @@ END
 // Generated from the TEXTINCLUDE 3 resource.
 //
 #include "version.rc"
+
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

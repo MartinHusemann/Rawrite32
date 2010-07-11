@@ -149,6 +149,7 @@ void CRawrite32Dlg::DoDataExchange(CDataExchange* pDX)
 {
   CDialog::DoDataExchange(pDX);
   //{{AFX_DATA_MAP(CRawrite32Dlg)
+  DDX_Control(pDX, IDC_PROGRESS, m_progress);
   DDX_Control(pDX, IDC_DRIVES, m_drives);
   DDX_Text(pDX, IDC_OUTPUT, m_output);
 	//}}AFX_DATA_MAP
@@ -448,10 +449,28 @@ void CRawrite32Dlg::OnWriteImage()
   m_fileOffset = 0;
   m_fsImageSize = 0;
   MapInputView();
+  m_progress.SetRange(0, 100);
+  m_progress.ShowWindow(SW_SHOW);
   IGenericDecompressor *decomp = StartDecompress(m_fsImage, m_fsImageSize);
   if (decomp) decomp->SetOutputSpace(m_outputBuffer, OUTPUT_BUF_SIZE);
 
+  CWnd *ow = GetDlgItem(IDC_OUTPUT);
+  CRect owr, pgr; ow->GetWindowRect(&owr); ScreenToClient(&owr);
+  m_progress.GetWindowRect(&pgr);
+  ow->SetWindowPos(NULL, owr.left, owr.top, owr.Width(), owr.Height()-pgr.Height(), SWP_NOACTIVATE|SWP_NOZORDER);
   for (;;) {
+
+    {
+      double full = (double)m_inputFileSize, cur = (double)m_fileOffset;
+      int perc = (int)(cur/full*100.0+.5);
+      m_progress.SetPos(perc);
+      CString st, out;
+      FormatSize(m_sizeWritten, st);
+      out.Format(IDS_WRITE_PROGRESS, st);
+      ow->SetWindowText(out);
+      Poll();
+      SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
+    }
 
     const BYTE *outData = NULL;
     DWORD outSize = 0;
@@ -538,6 +557,9 @@ void CRawrite32Dlg::OnWriteImage()
         TRACE("Error code %d\n", err);
 #endif
         AfxMessageBox(IDP_WRITE_ERROR);
+        CString msg;
+        msg.LoadString(IDP_WRITE_ERROR);
+        m_output += "\r\n" + msg;
         success = false;
         break;
       }
@@ -552,6 +574,8 @@ void CRawrite32Dlg::OnWriteImage()
       MapInputView();
     }
   }
+  m_progress.ShowWindow(SW_HIDE);
+  ow->SetWindowPos(NULL, owr.left, owr.top, owr.Width(), owr.Height(), SWP_NOACTIVATE|SWP_NOZORDER);
 
   if (m_fsImage) { UnmapViewOfFile(m_fsImage); m_fsImage = NULL; }
 
@@ -572,7 +596,6 @@ void CRawrite32Dlg::OnWriteImage()
       CString msg;
       msg.LoadString(IDP_DECOMP_ERROR);
       m_output += "\r\n" + msg;
-      UpdateData(FALSE);
       success = false;
     }
     decomp->Delete();
@@ -583,8 +606,8 @@ void CRawrite32Dlg::OnWriteImage()
     FormatSize(m_sizeWritten, len);
     msg.Format(IDS_SUCCESS, len);
     m_output += msg;
-    UpdateData(FALSE);
   }
+  UpdateData(FALSE);
 }
 
 void CRawrite32Dlg::CloseInputFile()

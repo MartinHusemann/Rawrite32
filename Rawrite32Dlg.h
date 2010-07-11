@@ -52,6 +52,7 @@ public:
   //{{AFX_DATA(CRawrite32Dlg)
 	enum { IDD = IDD_RAWRITE32_DIALOG };
 	CComboBox	m_drives;
+  CProgressCtrl m_progress;
 	CString	m_output;
 	//}}AFX_DATA
 
