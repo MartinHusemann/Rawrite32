@@ -43,6 +43,11 @@
 #define new DEBUG_NEW
 #endif
 
+// single threaded hash calculation with timing
+// #define HASH_BENCHMARK
+// log total hash time
+#define HASH_TOTAL_TIME
+
 // XXX - just blindly assume we write to a 512-bye sectored medium if using old (win9x) systems.
 #define SECTOR_SIZE   512 // this value is not used on WinNT based systems
 
@@ -302,7 +307,7 @@ BOOL CRawrite32Dlg::OnInitDialog()
     if (winDir[1] == ':' && _toupper(winDir[0]) == _toupper(drive[0])) continue;
     if (sysDir[1] == ':' && _toupper(sysDir[0]) == _toupper(drive[0])) continue;
     DWORD type = GetDriveType(drive);
-    if (type != DRIVE_CDROM && type != DRIVE_RAMDISK) {
+    if (type != DRIVE_CDROM && type != DRIVE_REMOTE && type != DRIVE_RAMDISK) {
       TCHAR name[4];
       _tcsncpy(name, drive, 2);
       name[2] = 0;
@@ -775,8 +780,8 @@ UINT __cdecl hashThreadWorker(void *token)
     if (hash->input == NULL) break;
     while (hash->inputLen) {
       DWORD chunk = hash->inputLen;
-      if (chunk > 8*1024)
-        chunk = 8*1024;
+      if (chunk > 16*1024)
+        chunk = 16*1024;
       hash->hashImpl->AddData(hash->input, chunk);
       hash->inputDataUsed += chunk;
       hash->inputLen -= chunk;
@@ -812,6 +817,21 @@ void CRawrite32Dlg::CalcHashes(CString &out)
       hashes.push_back(s);
     }
   }
+
+#ifdef HASH_TOTAL_TIME
+  DWORD totalStart = ::GetTickCount();
+#endif
+#ifdef HASH_BENCHMARK
+  m_fsImage = (const BYTE *)MapViewOfFile(m_inputMapping, FILE_MAP_READ, 0, 0, m_inputFileSize);
+  for (size_t i = 0; i < hashes.size(); i++) {
+    DWORD start = ::GetTickCount();
+    hashes[i].hashImpl->AddData(m_fsImage, m_inputFileSize);
+    DWORD done = ::GetTickCount();
+    CString t; t.Format("%s calculated in %u ms", hashes[i].hashImpl->HashName(), done-start);
+    out += "\r\n" + t;
+  }
+  UnmapViewOfFile(m_fsImage); m_fsImage = NULL;
+#else
   m_progress.SetRange32(0, 100*(int)hashes.size());
   m_progress.ShowWindow(SW_SHOW);
 
@@ -864,6 +884,14 @@ void CRawrite32Dlg::CalcHashes(CString &out)
     CloseHandle(hashes[i].DataDone);
   }
   out = t;
+#endif
+#ifdef HASH_TOTAL_TIME
+  {
+    DWORD totalEnd = ::GetTickCount();
+    CString t; t.Format("\r\n\r\ntotal time %u ms", totalEnd-totalStart);
+    out += t;
+  }
+#endif
 
   m_progress.ShowWindow(SW_HIDE);
   ow->SetWindowPos(NULL, owr.left, owr.top, owr.Width(), owr.Height(), SWP_NOACTIVATE|SWP_NOZORDER);
