@@ -71,7 +71,7 @@ __RCSID("$NetBSD: sha2.c,v 1.21 2010/01/24 21:11:18 joerg Exp $");
 #   undef be32toh
 #   undef be64toh
 
-static uint32_t
+static __inline uint32_t
 htobe32(uint32_t x)
 {
 	uint8_t p[4];
@@ -80,7 +80,7 @@ htobe32(uint32_t x)
 	return ((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]);
 }
 
-static uint64_t
+static __inline uint64_t
 htobe64(uint64_t x)
 {
 	uint8_t p[8];
@@ -93,13 +93,13 @@ htobe64(uint64_t x)
 	return ((((uint64_t)u) << 32) | v);
 }
 
-static uint32_t
+static __inline uint32_t
 be32toh(uint32_t x)
 {
 	return htobe32(x);
 }
 
-static uint64_t
+static __inline uint64_t
 be64toh(uint64_t x)
 {
 	return htobe64(x);
