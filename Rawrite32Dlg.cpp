@@ -374,11 +374,16 @@ BOOL CRawrite32Dlg::OnInitDialog()
             if (desc.header.VendorIdOffset || desc.header.ProductIdOffset) {
               name += " (";
               if (desc.header.VendorIdOffset) {
-                name += strings + desc.header.VendorIdOffset;
+                CString t(strings + desc.header.VendorIdOffset);
+                t.Trim();
+                name += t;
                 if (desc.header.ProductIdOffset) name += " ";
               }
-              if (desc.header.ProductIdOffset) 
-                name += strings + desc.header.ProductIdOffset;
+              if (desc.header.ProductIdOffset) {
+                CString t(strings + desc.header.ProductIdOffset);
+                t.Trim();
+                name += t;
+              }
               name += ")";
             }
           }
