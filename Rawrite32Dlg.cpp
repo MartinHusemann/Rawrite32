@@ -857,17 +857,10 @@ UINT __cdecl hashThreadWorker(void *token)
   for (;;) {
     WaitForSingleObject(hash->DataAvailable, INFINITE);
     if (hash->input == NULL) break;
-    while (hash->inputLen) {
-      DWORD chunk = hash->inputLen;
-      if (chunk > 16*1024)
-        chunk = 16*1024;
-      hash->hashImpl->AddData(hash->input, chunk);
-      hash->inputDataUsed += chunk;
-      hash->inputLen -= chunk;
-      hash->input += chunk;
-      DWORD perc = (DWORD)((double)hash->inputDataUsed/(double)hash->inputFileTotalSize*100.0);
-      InterlockedExchange(&hash->percDone, perc);
-    }
+    hash->hashImpl->AddData(hash->input, hash->inputLen);
+    hash->inputDataUsed += hash->inputLen;
+    DWORD perc = (DWORD)((double)hash->inputDataUsed/(double)hash->inputFileTotalSize*100.0);
+    InterlockedExchange(&hash->percDone, perc);
     SetEvent(hash->DataDone);
   }
   return 0;
@@ -923,9 +916,11 @@ void CRawrite32Dlg::CalcHashes(CString &out)
   m_fileOffset = 0;
   for (;;) {
     if (!MapInputView()) break;
+    handles.clear();
     for (size_t i = 0; i < hashes.size(); i++) {
       hashes[i].input = m_fsImage;
       hashes[i].inputLen = m_fsImageSize;
+      handles.push_back(hashes[i].DataDone);
       SetEvent(hashes[i].DataAvailable);
     }
     do {
@@ -934,7 +929,7 @@ void CRawrite32Dlg::CalcHashes(CString &out)
         perc += hashes[i].percDone;
       m_progress.SetPos(perc);
       Poll();
-    } while (WaitAndPoll(handles, 1500));
+    } while (WaitAndPoll(handles, 750));
     if (!AdvanceMapOffset()) break;
   }
   EnableWindow();
@@ -986,12 +981,20 @@ void CRawrite32Dlg::Poll()
   SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
 }
 
-bool CRawrite32Dlg::WaitAndPoll(const vector<HANDLE> &handles, DWORD timeout)
+bool CRawrite32Dlg::WaitAndPoll(vector<HANDLE> &handles, DWORD timeout)
 {
   for (;;) {
-    DWORD res = MsgWaitForMultipleObjects(handles.size(), &handles[0], TRUE, timeout, QS_PAINT|QS_TIMER);
-    if (res >= WAIT_OBJECT_0 && res < WAIT_OBJECT_0+handles.size()) return false;
-    else if (res == WAIT_TIMEOUT) return true;
+    DWORD res = MsgWaitForMultipleObjects(handles.size(), &handles[0], FALSE, timeout, QS_PAINT|QS_TIMER);
+    if (res >= WAIT_OBJECT_0 && res < WAIT_OBJECT_0+handles.size()) {
+      size_t ndx = res-WAIT_OBJECT_0;
+      handles.erase(handles.begin()+ndx);
+      if (handles.empty()) 
+        return false;
+    } else if (res == WAIT_TIMEOUT) {
+      return true;
+    } else if (res != WAIT_OBJECT_0+handles.size()) {
+      ASSERT(FALSE);
+    }
     Poll();
   }
 }
