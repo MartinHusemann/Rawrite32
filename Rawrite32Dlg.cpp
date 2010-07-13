@@ -308,9 +308,25 @@ BOOL CRawrite32Dlg::OnInitDialog()
     if (sysDir[1] == ':' && _toupper(sysDir[0]) == _toupper(drive[0])) continue;
     DWORD type = GetDriveType(drive);
     if (type != DRIVE_CDROM && type != DRIVE_REMOTE && type != DRIVE_RAMDISK) {
-      TCHAR name[4];
-      _tcsncpy(name, drive, 2);
-      name[2] = 0;
+      CString name(drive, 2);
+      if (!m_usingVXD) {
+        // no idea how to get this information on Win9x - just ignore the difference there
+        CString internalName;
+        internalName.Format(_T("\\\\.\\%s"), drive);
+        HANDLE outputDevice = CreateFile(internalName, GENERIC_ALL, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (outputDevice != INVALID_HANDLE_VALUE) {
+#if 0
+          STORAGE_DEVICE_DESCRIPTOR desc;
+          STORAGE_PROPERTY_QUERY qry;
+          qry.PropertyId = StorageDeviceProperty;
+          qry.QueryType = PropertyStandardQuery;
+          DWORD bytes = 0;
+          if (DeviceIoControl(outputDevice, IOCTL_STORAGE_QUERY_PROPERTY, &qry, sizeof qry, &desc, sizeof desc, &bytes, NULL) && bytes == sizeof desc) {
+          }
+#endif
+        }
+        CloseHandle(outputDevice);
+      }
       m_drives.AddString(name);
     }
   }
