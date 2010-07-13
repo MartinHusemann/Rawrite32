@@ -484,7 +484,7 @@ void CRawrite32Dlg::OnNewImage()
 void CRawrite32Dlg::ShowError(DWORD err, UINT id)
 {
   CString msg; msg.LoadString(id);
-  CString t; t.Format("%s\r\nError code: %u", msg, id);
+  CString t; t.Format("%s\r\nError code: %u", msg, err);
   m_output += t;
   ShowOutput();
   AfxMessageBox(id);
