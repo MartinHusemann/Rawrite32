@@ -55,7 +55,7 @@
 #define MAP_VIEW_SIZE (16*1024*1024)
 
 // size of the decompression buffer
-#define OUTPUT_BUF_SIZE (64*1024*1024)
+#define OUTPUT_BUF_SIZE (128*1024*1024)
 
 #ifdef _M_IX86
 // only needed on arch=i386, otherwise assume NT anyway
@@ -356,9 +356,8 @@ BOOL CRawrite32Dlg::OnInitDialog()
         // no idea how to get this information on Win9x - just ignore the difference there
         CString internalName;
         internalName.Format(_T("\\\\.\\%s"), name);
-        HANDLE outputDevice = CreateFile(internalName, GENERIC_ALL, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        HANDLE outputDevice = CreateFile(internalName, 0, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
         if (outputDevice != INVALID_HANDLE_VALUE) {
-
           union {
             STORAGE_DEVICE_DESCRIPTOR header;
             TCHAR buf[1024];
@@ -482,6 +481,23 @@ void CRawrite32Dlg::OnNewImage()
   VerifyInput();
 }
 
+void CRawrite32Dlg::ShowError(DWORD err, UINT id)
+{
+  CString msg; msg.LoadString(id);
+  CString t; t.Format("%s\r\nError code: %u", msg, id);
+  m_output += t;
+  ShowOutput();
+  AfxMessageBox(id);
+}
+
+void CRawrite32Dlg::ShowOutput()
+{
+  UpdateData(FALSE);
+  CEdit* edit = (CEdit*)GetDlgItem(IDC_OUTPUT);
+  int n = m_output.GetLength();
+  edit->SetSel(n,n);
+}
+
 void CRawrite32Dlg::OnWriteImage() 
 {
   if (!VerifyInput())
@@ -504,7 +520,7 @@ void CRawrite32Dlg::OnWriteImage()
     // Windows 9x: can't write to devices, need DOS services via vwin32.vdx
     m_outputDevice = CreateFile("\\\\.\\vwin32", 0, 0, NULL, 0, FILE_FLAG_DELETE_ON_CLOSE, NULL);
     if (m_outputDevice == INVALID_HANDLE_VALUE) {
-      AfxMessageBox(IDP_NO_VXD);
+      ShowError(GetLastError(), IDP_NO_VXD);
       return;
     }
     m_sectorOut = m_sectorSkip;
@@ -513,15 +529,15 @@ void CRawrite32Dlg::OnWriteImage()
   {
     // Windows NT does it the UNIX way...
     CString internalName;
-    internalName.Format(_T("\\\\.\\%s"), drive);
-    m_outputDevice = CreateFile(internalName, GENERIC_ALL, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    internalName.Format(_T("\\\\.\\%s"), drive.Left(2));
+    m_outputDevice = CreateFile(internalName, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
     if (m_outputDevice == INVALID_HANDLE_VALUE) {
-      AfxMessageBox(IDP_NO_DISK);
+      ShowError(GetLastError(), IDP_NO_DISK);
       return;
     }
     DWORD bytes = 0;
     if (DeviceIoControl(m_outputDevice, FSCTL_LOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL) == 0) {
-      AfxMessageBox(IDP_CANT_LOCK_DISK);
+      ShowError(GetLastError(), IDP_CANT_LOCK_DISK);
       CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
       return;
     }
@@ -646,14 +662,7 @@ void CRawrite32Dlg::OnWriteImage()
     {
       DWORD written = 0;
       if (!WriteFile(m_outputDevice, outData, outSize, &written, NULL) || written != outSize) {
-#ifdef _DEBUG
-        DWORD err = ::GetLastError();
-        TRACE("Error code %d\n", err);
-#endif
-        AfxMessageBox(IDP_WRITE_ERROR);
-        CString msg;
-        msg.LoadString(IDP_WRITE_ERROR);
-        m_output += "\r\n" + msg;
+        ShowError(GetLastError(), IDP_WRITE_ERROR);
         success = false;
         break;
       }
@@ -701,7 +710,7 @@ void CRawrite32Dlg::OnWriteImage()
     msg.Format(IDS_SUCCESS, len);
     m_output += msg;
   }
-  UpdateData(FALSE);
+  ShowOutput();
 }
 
 void CRawrite32Dlg::CloseInputFile()
@@ -773,7 +782,7 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
   if (m_inputMapping != NULL) {
     m_inputFileSize = (DWORD64)m_fsImageSize | ((DWORD64)sizeHigh<<32);
     m_output.LoadString(IDS_CALCULATING_HASHES);
-    UpdateData(FALSE);
+    ShowOutput();
     Poll();
     CString hashValues;
     CalcHashes(hashValues);
@@ -782,7 +791,7 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
     m_output.Format(IDS_MESSAGE_INPUT_HASHES, m_imageName, size);
     m_output += "\r\n" + hashValues + "\r\n";
     // show message
-    UpdateData(FALSE);
+    ShowOutput();
     retVal = true;
     
     // and copy to clipboard
