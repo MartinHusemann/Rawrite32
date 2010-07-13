@@ -257,6 +257,49 @@ STDMETHODIMP CRawrite32Dlg::XDrop::Drop(IDataObject * pDataObject, DWORD /*grfKe
   return S_OK;
 }
 
+extern "C" {
+// avoid DDK includes, just paste some stuff here
+enum STORAGE_PROPERTY_ID {
+  StorageDeviceProperty                   = 0,
+  StorageAdapterProperty                  = 1,
+  StorageDeviceIdProperty                 = 2,
+  StorageDeviceUniqueIdProperty           = 3,
+  StorageDeviceWriteCacheProperty         = 4,
+  StorageMiniportProperty                 = 5,
+  StorageAccessAlignmentProperty          = 6,
+  StorageDeviceSeekPenaltyProperty        = 7,
+  StorageDeviceTrimProperty               = 8,
+  StorageDeviceWriteAggregationProperty   = 9 
+};
+enum STORAGE_QUERY_TYPE {
+  PropertyStandardQuery     = 0,
+  PropertyExistsQuery       = 1,
+  PropertyMaskQuery         = 2,
+  PropertyQueryMaxDefined   = 3 
+};
+struct STORAGE_PROPERTY_QUERY {
+  STORAGE_PROPERTY_ID PropertyId;
+  STORAGE_QUERY_TYPE  QueryType;
+  UCHAR               AdditionalParameters[1];
+};
+struct STORAGE_DEVICE_DESCRIPTOR {
+  ULONG            Version;
+  ULONG            Size;
+  UCHAR            DeviceType;
+  UCHAR            DeviceTypeModifier;
+  BOOLEAN          RemovableMedia;
+  BOOLEAN          CommandQueueing;
+  ULONG            VendorIdOffset;
+  ULONG            ProductIdOffset;
+  ULONG            ProductRevisionOffset;
+  ULONG            SerialNumberOffset;
+  STORAGE_BUS_TYPE BusType;
+  ULONG            RawPropertiesLength;
+  UCHAR            RawDeviceProperties[1];
+};
+#define IOCTL_STORAGE_QUERY_PROPERTY   CTL_CODE(IOCTL_STORAGE_BASE, 0x0500, METHOD_BUFFERED, FILE_ANY_ACCESS)
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CRawrite32Dlg message handlers
 
@@ -312,20 +355,35 @@ BOOL CRawrite32Dlg::OnInitDialog()
       if (!m_usingVXD) {
         // no idea how to get this information on Win9x - just ignore the difference there
         CString internalName;
-        internalName.Format(_T("\\\\.\\%s"), drive);
+        internalName.Format(_T("\\\\.\\%s"), name);
         HANDLE outputDevice = CreateFile(internalName, GENERIC_ALL, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         if (outputDevice != INVALID_HANDLE_VALUE) {
-#if 0
-          STORAGE_DEVICE_DESCRIPTOR desc;
+
+          union {
+            STORAGE_DEVICE_DESCRIPTOR header;
+            TCHAR buf[1024];
+          } desc;
           STORAGE_PROPERTY_QUERY qry;
+          memset(&qry, 0, sizeof qry);
           qry.PropertyId = StorageDeviceProperty;
           qry.QueryType = PropertyStandardQuery;
           DWORD bytes = 0;
-          if (DeviceIoControl(outputDevice, IOCTL_STORAGE_QUERY_PROPERTY, &qry, sizeof qry, &desc, sizeof desc, &bytes, NULL) && bytes == sizeof desc) {
+          if (DeviceIoControl(outputDevice, IOCTL_STORAGE_QUERY_PROPERTY, &qry, sizeof qry, &desc.header, sizeof desc, &bytes, NULL)
+              && bytes >= sizeof(STORAGE_DEVICE_DESCRIPTOR)) {
+            const char *strings = (const char *)&desc;
+            if (desc.header.VendorIdOffset || desc.header.ProductIdOffset) {
+              name += " (";
+              if (desc.header.VendorIdOffset) {
+                name += strings + desc.header.VendorIdOffset;
+                if (desc.header.ProductIdOffset) name += " ";
+              }
+              if (desc.header.ProductIdOffset) 
+                name += strings + desc.header.ProductIdOffset;
+              name += ")";
+            }
           }
-#endif
+         CloseHandle(outputDevice);
         }
-        CloseHandle(outputDevice);
       }
       m_drives.AddString(name);
     }
