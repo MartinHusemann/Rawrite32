@@ -192,10 +192,114 @@ protected:
   SHA512_CTX m_ctx;
 };
 
-void GetAllHashes(vector<IGenericHash*> &result)
+static void GetAllAvailableHashes(vector<IGenericHash*> &result)
 {
   result.push_back(new CHashMD5);
   result.push_back(new CHashSHA1);
   result.push_back(new CHashSHA256);
   result.push_back(new CHashSHA512);
+}
+
+void GetAllHashes(vector<IGenericHash*> &result)
+{
+  GetAllAvailableHashes(result);
+  for (size_t i = 0; i < result.size(); ) {
+    if (HashIsSelected(result[i]->HashName())) {
+      i++;
+    } else {
+      result[i]->Delete();
+      result.erase(result.begin()+i);
+    }
+  }
+}
+
+// returns a list of all available hash implementations
+void GetAllHashNames(vector<CString> &result)
+{
+  vector<IGenericHash*> hashes;
+  GetAllAvailableHashes(hashes);
+  for (size_t i = 0; i < hashes.size(); i++) {
+    result.push_back(hashes[i]->HashName());
+    hashes[i]->Delete();
+  }
+}
+
+class CRegCash
+{
+public:
+  CRegCash();
+  ~CRegCash();
+  bool hash(LPCTSTR);
+  void SetHash(LPCTSTR,bool);
+protected:
+  void Open();
+protected:
+  map<CString,bool> m_hashes;
+  HKEY m_key;
+  bool m_open, m_modified;
+};
+
+CRegCash::CRegCash()
+: m_key(NULL), m_open(false), m_modified(false)
+{ }
+
+CRegCash::~CRegCash()
+{
+  if (m_modified) {
+    for (map<CString,bool>::const_iterator p = m_hashes.begin(); p != m_hashes.end(); p++) {
+      DWORD dv = p->second;
+      RegSetValueEx(m_key, p->first, 0, REG_DWORD, (const BYTE*)&dv, sizeof dv);
+    }
+  }
+  RegCloseKey(m_key);
+}
+
+void CRegCash::Open()
+{
+  if (m_open) return;
+  m_key = AfxGetApp()->GetSectionKey("hashes");
+  m_open = true;
+  for (DWORD i = 0; ; i++) {
+    TCHAR hashName[1000];
+    DWORD sizeName = sizeof(hashName);
+    DWORD data = 0, sizeData = sizeof data;
+    if (RegEnumValue(m_key, i, hashName, &sizeName, NULL, NULL, (BYTE*)&data, &sizeData) != ERROR_SUCCESS) break;
+    m_hashes[hashName] = data != 0;
+  }
+}
+
+bool CRegCash::hash(LPCTSTR hashName)
+{
+  Open();
+  map<CString,bool>::const_iterator p = m_hashes.find(hashName);
+  if (p != m_hashes.end()) return p->second;
+  bool res = false;
+  SYSTEM_INFO info;
+  GetSystemInfo(&info);
+  if (info.dwNumberOfProcessors >= 4)
+    res = true;
+  else
+    res = _tcscmp(hashName, "MD5") == 0 || _tcscmp(hashName, "SHA512") == 0;
+  SetHash(hashName, res);
+  return res;
+}
+
+void CRegCash::SetHash(LPCTSTR name, bool activate)
+{
+  m_hashes[name] = activate;
+  m_modified = true;
+}
+
+static CRegCash theRegCache;
+
+// query if the hash is activated
+bool HashIsSelected(LPCTSTR hashName)
+{
+  return theRegCache.hash(hashName);
+}
+
+// changes activation of a hash
+void SelectHash(LPCTSTR hashName, bool activate)
+{
+  theRegCache.SetHash(hashName, activate);
 }

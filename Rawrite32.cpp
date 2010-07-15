@@ -53,6 +53,8 @@ END_MESSAGE_MAP()
 
 CRawrite32App::CRawrite32App()
 {
+  m_pszRegistryKey = _tcsdup(_T("NetBSD"));
+  m_pszProfileName = _tcsdup(_T("Rawrite32"));
 }
 
 /////////////////////////////////////////////////////////////////////////////

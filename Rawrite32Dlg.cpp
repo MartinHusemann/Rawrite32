@@ -38,6 +38,7 @@
 #include "Decompress.h"
 
 #include <winioctl.h>
+#include <map>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -46,7 +47,7 @@
 // single threaded hash calculation with timing
 // #define HASH_BENCHMARK
 // log total hash time
-#define HASH_TOTAL_TIME
+// #define HASH_TOTAL_TIME
 
 // XXX - just blindly assume we write to a 512-bye sectored medium if using old (win9x) systems.
 #define SECTOR_SIZE   512 // this value is not used on WinNT based systems
@@ -71,48 +72,21 @@ static bool RunningOnDOS()
 
 /////////////////////////////////////////////////////////////////////////////
 // CAboutDlg dialog used for App About
-
 class CAboutDlg : public CDialog
 {
 public:
-  CAboutDlg();
+  CAboutDlg() : CDialog(IDD) {}
 
-// Dialog Data
-  //{{AFX_DATA(CAboutDlg)
+private:
   enum { IDD = IDD_ABOUTBOX };
-  //}}AFX_DATA
 
-  // ClassWizard generated virtual function overrides
-  //{{AFX_VIRTUAL(CAboutDlg)
-  protected:
-  virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-  //}}AFX_VIRTUAL
-
-// Implementation
 protected:
-  //{{AFX_MSG(CAboutDlg)
 	afx_msg void OnSurfHome();
-	//}}AFX_MSG
   DECLARE_MESSAGE_MAP()
 };
 
-CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
-{
-  //{{AFX_DATA_INIT(CAboutDlg)
-  //}}AFX_DATA_INIT
-}
-
-void CAboutDlg::DoDataExchange(CDataExchange* pDX)
-{
-  CDialog::DoDataExchange(pDX);
-  //{{AFX_DATA_MAP(CAboutDlg)
-  //}}AFX_DATA_MAP
-}
-
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
-  //{{AFX_MSG_MAP(CAboutDlg)
 	ON_BN_CLICKED(IDC_SURF_HOME, OnSurfHome)
-	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 void CAboutDlg::OnSurfHome() 
@@ -122,6 +96,69 @@ void CAboutDlg::OnSurfHome()
   CString url;
   url.LoadString(IDS_HOME_URL);
   ShellExecute(NULL, _T("open"), url, NULL, NULL, SW_SHOWNORMAL);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// CHashOptionsDlg
+class CHashOptionsDlg : public CDialog
+{
+protected:
+  enum { IDD = IDD_HASH_OPTIONS };
+  BOOL OnInitDialog();
+public:
+  CHashOptionsDlg() : CDialog(IDD), m_initDone(false) { }
+protected:
+  afx_msg void OnHashSelect(NMHDR*,LRESULT*);
+  DECLARE_MESSAGE_MAP();
+  virtual void OnOK();
+protected:
+  map<CString,bool> m_modified;
+  bool m_initDone;
+};
+
+BEGIN_MESSAGE_MAP(CHashOptionsDlg, CDialog)
+  ON_NOTIFY(LVN_ITEMCHANGED, IDC_HASH_TYPE_LIST, OnHashSelect)
+END_MESSAGE_MAP()
+
+BOOL CHashOptionsDlg::OnInitDialog()
+{
+  BOOL res = CDialog::OnInitDialog();
+  CListCtrl lc; lc.Attach(*GetDlgItem(IDC_HASH_TYPE_LIST));
+  CRect r;
+  vector<CString> hashNames;
+  GetAllHashNames(hashNames);
+  lc.GetClientRect(&r);
+  lc.InsertColumn(1, "", 0, r.Width()-GetSystemMetrics(SM_CXVSCROLL)-1);
+  lc.SetExtendedStyle(lc.GetExtendedStyle()|LVS_EX_CHECKBOXES);
+  for (size_t i = 0; i < hashNames.size(); i++) {
+    int ndx = lc.InsertItem(i, hashNames[i]);
+    if (HashIsSelected(hashNames[i]))
+      lc.SetCheck(ndx, 1);
+  }
+  lc.Detach();
+  m_initDone = true;
+  return res;
+}
+
+void CHashOptionsDlg::OnHashSelect(NMHDR*pHDR,LRESULT*)
+{
+  if (!m_initDone) return;
+  NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pHDR;
+  if ((pNMListView->uChanged & LVIF_STATE) == 0) return;
+  if (((pNMListView->uNewState ^ pNMListView->uOldState) & LVIS_STATEIMAGEMASK) == 0) return;
+  CListCtrl *pList = (CListCtrl*)GetDlgItem(IDC_HASH_TYPE_LIST);
+  int ndx = pNMListView->iItem;
+  bool activate = !!pList->GetCheck(ndx);
+  CString name(pList->GetItemText(ndx, 0));
+  m_modified[name] = activate;
+}
+
+void CHashOptionsDlg::OnOK()
+{
+  CDialog::OnOK();
+  if (m_modified.empty()) return;
+  for (map<CString,bool>::const_iterator i = m_modified.begin(); i != m_modified.end(); i++)
+    SelectHash(i->first, i->second);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -317,17 +354,18 @@ BOOL CRawrite32Dlg::OnInitDialog()
   // IDM_ABOUTBOX must be in the system command range.
   ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
   ASSERT(IDM_ABOUTBOX < 0xF000);
+  ASSERT((IDM_OPTIONS_HASHES & 0xFFF0) == IDM_OPTIONS_HASHES);
+  ASSERT(IDM_OPTIONS_HASHES < 0xF000);
 
   CMenu* pSysMenu = GetSystemMenu(FALSE);
   if (pSysMenu != NULL)
   {
-  	CString strAboutMenu;
-  	strAboutMenu.LoadString(IDS_ABOUTBOX);
-  	if (!strAboutMenu.IsEmpty())
-  	{
-  		pSysMenu->AppendMenu(MF_SEPARATOR);
-  		pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
-  	}
+  	CString aboutMenu, optionsMenu;
+  	aboutMenu.LoadString(IDS_ABOUTBOX);
+    optionsMenu.LoadString(IDS_OPTIONS_HASHES);
+		pSysMenu->AppendMenu(MF_SEPARATOR);
+		pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, aboutMenu);
+		pSysMenu->AppendMenu(MF_STRING, IDM_OPTIONS_HASHES, optionsMenu);
   }
 
   SetIcon(m_hIcon, TRUE);			// Set big icon
@@ -402,13 +440,13 @@ BOOL CRawrite32Dlg::OnInitDialog()
 
 void CRawrite32Dlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
-  if ((nID & 0xFFF0) == IDM_ABOUTBOX)
-  {
+  if ((nID & 0xFFF0) == IDM_ABOUTBOX) {
   	CAboutDlg dlgAbout;
   	dlgAbout.DoModal();
-  }
-  else
-  {
+  } else if ((nID & 0xFFF0) == IDM_OPTIONS_HASHES) {
+    CHashOptionsDlg dlgOptions;
+    dlgOptions.DoModal();
+  } else {
   	CDialog::OnSysCommand(nID, lParam);
   }
 }

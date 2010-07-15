@@ -1,14 +1,13 @@
 // Microsoft Visual C++ generated resource script.
 //
-#include "resource.h"
+#include "resource."
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
-
+#include "afxres.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
@@ -25,6 +24,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 // Dialog
 //
+
 IDD_RAWRITE32_DIALOG DIALOGEX 0, 0, 368, 200
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
@@ -35,7 +35,7 @@ BEGIN
     EDITTEXT        IDC_IMAGE_NAME,7,18,314,14,ES_AUTOHSCROLL
     PUSHBUTTON      "&Select...",IDC_BROWSE,324,18,37,14
     LTEXT           "Program &messages:",IDC_STATIC,7,41,222,10
-    EDITTEXT        IDC_OUTPUT,7,53,354,100,ES_READONLY|ES_AUTOVSCROLL|ES_MULTILINE
+    EDITTEXT        IDC_OUTPUT,7,53,354,100,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
     CONTROL         "",IDC_PROGRESS,"msctls_progress32",NOT WS_VISIBLE | WS_BORDER | PBS_SMOOTH,7,140,354,13
     LTEXT           "&Target drive:",IDC_STATIC,7,158,50,12
     COMBOBOX        IDC_DRIVES,61,156,139,58,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
@@ -46,6 +46,21 @@ BEGIN
     DEFPUSHBUTTON   "Exit",IDOK,151,179,66,14
     PUSHBUTTON      "Help",ID_HELP,233,179,66,14
 END
+
+IDD_HASH_OPTIONS DIALOGEX 0, 0, 215, 192
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Hash options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Rawrite32 calculates hash values over the input image and displays them before writing the image to disk. It also copies these values to the clipboard.",IDC_STATIC,7,7,201,26
+    LTEXT           "This allows you to verify the integrity of the downloaded image, by comparing the results to the published values. NetBSD is using MD5 (for historical reasons) and SHA512 values in recent releases.",IDC_STATIC,7,33,201,34
+    LTEXT           "On a modern multi core CPU you can easily calculate additional hashes in the background without slowing down the overall process. On older machines, additional calculations might cause a noticible delay.",IDC_STATIC,7,69,201,33
+    LTEXT           "Hashes to calculate:",IDC_STATIC,7,108,195,10
+    CONTROL         "",IDC_HASH_TYPE_LIST,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,120,201,46
+    DEFPUSHBUTTON   "OK",IDOK,49,171,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,115,171,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -72,6 +87,30 @@ BEGIN
         BOTTOMMARGIN, 193
     END
 END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#include ""version.rc""\r\0"
+END
+
 #endif    // APSTUDIO_INVOKED
 
 
@@ -115,34 +154,10 @@ BEGIN
     IDS_SIZE_BYTE           "Byte"
     IDS_SIZE_MBYTE          "MByte"
     IDS_SIZE_GBYTE          "GByte"
+    IDS_OPTIONS_HASHES      "Hash options..."
 END
 
 #endif    // English (U.S.) resources
-/////////////////////////////////////////////////////////////////////////////
-
-#ifdef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXTINCLUDE
-//
-
-1 TEXTINCLUDE 
-BEGIN
-    "#include ""resource.h""\r\0"
-END
-
-2 TEXTINCLUDE 
-BEGIN
-    "#include ""afxres.h""\r\0"
-END
-
-3 TEXTINCLUDE 
-BEGIN
-    "#include ""version.rc""\r\0"
-END
-
-#endif    // APSTUDIO_INVOKED
-
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -152,8 +167,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-#include "version.rc"
-
+#include "version.rc"
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

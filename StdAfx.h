@@ -47,7 +47,9 @@
 #include <afxcmn.h>
 
 #include <vector>
+#include <map>
 using std::vector;
+using std::map;
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

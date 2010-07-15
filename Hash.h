@@ -38,4 +38,14 @@ interface IGenericHash {
   virtual void Delete() PURE;
 };
 
+// fills a list of hash instances for all selected hashes
 void GetAllHashes(vector<IGenericHash*>&);
+
+// returns a list of all available hash implementations
+void GetAllHashNames(vector<CString>&);
+
+// query if the hash is activated
+bool HashIsSelected(LPCTSTR);
+
+// changes activation of a hash
+void SelectHash(LPCTSTR,bool);
