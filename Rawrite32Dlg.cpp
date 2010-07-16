@@ -58,6 +58,9 @@
 // size of the decompression buffer
 #define OUTPUT_BUF_SIZE (128*1024*1024)
 
+// maximum size of a single write request to the raw output device
+#define MAX_WRITE_CHUNK (1*1024*1024)
+
 #ifdef _M_IX86
 // only needed on arch=i386, otherwise assume NT anyway
 static bool RunningOnDOS()
@@ -169,6 +172,10 @@ CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
     m_inputFile(INVALID_HANDLE_VALUE), m_inputMapping(NULL),
     m_curInput(NULL), m_sizeRemaining(0), m_sizeWritten(0),
     m_inputFileSize(0), m_fileOffset(0),m_outputDevice(INVALID_HANDLE_VALUE),
+    m_decompOutputSpaceAvailable(INVALID_HANDLE_VALUE),
+    m_decompOutputAvailable(INVALID_HANDLE_VALUE),
+    m_decomp(NULL),
+    m_decompOutputLen(0), m_curDecompTarget(0), m_decompForcedExit(0),
     m_outputBuffer(new BYTE[OUTPUT_BUF_SIZE])
 #ifdef _M_IX86
     , m_usingVXD(RunningOnDOS()), m_sectorOut(0)
@@ -536,6 +543,49 @@ void CRawrite32Dlg::ShowOutput()
   edit->SetSel(n,n);
 }
 
+UINT CRawrite32Dlg::dcompressionStarter(void *token)
+{
+  return ((CRawrite32Dlg*)token)->BackgroundDecompressor();
+}
+
+UINT CRawrite32Dlg::BackgroundDecompressor()
+{
+  for (;;) {
+    if (m_decompForcedExit) break;
+
+    WaitForSingleObject(m_decompOutputSpaceAvailable, INFINITE);
+    m_decomp->SetOutputSpace(m_outputBuffer + m_curDecompTarget*(OUTPUT_BUF_SIZE/2), OUTPUT_BUF_SIZE/2);
+
+decompMore:
+    if (m_decompForcedExit) break;
+
+    if (m_decomp->isError())  {
+      m_decompOutputLen = 0;
+      SetEvent(m_decompOutputAvailable);
+      break;
+    }
+    if (m_decomp->needInputData()) {
+      UnmapViewOfFile(m_fsImage);
+      if (AdvanceMapOffset() && MapInputView()) {
+        m_decomp->AddInputData(m_fsImage, m_fsImageSize);
+        if (m_decomp->outputSpace() > 0 && m_decomp->needInputData())
+          goto decompMore;
+      }
+    }
+    if (m_decomp->outputSpace() == OUTPUT_BUF_SIZE) {
+      if (m_decomp->allDone()) {
+        m_decompOutputLen = 0;
+        SetEvent(m_decompOutputAvailable);
+        break;
+      }
+      goto decompMore;
+    }
+    m_decompOutputLen = OUTPUT_BUF_SIZE - m_decomp->outputSpace();
+    SetEvent(m_decompOutputAvailable);
+  }
+  return 0;
+}
+
 void CRawrite32Dlg::OnWriteImage() 
 {
   if (!VerifyInput())
@@ -594,48 +644,40 @@ void CRawrite32Dlg::OnWriteImage()
   MapInputView();
   m_progress.SetRange(0, 100);
   m_progress.ShowWindow(SW_SHOW);
-  IGenericDecompressor *decomp = StartDecompress(m_fsImage, m_fsImageSize);
-  if (decomp) decomp->SetOutputSpace(m_outputBuffer, OUTPUT_BUF_SIZE);
 
   CWnd *ow = GetDlgItem(IDC_OUTPUT);
   CRect owr, pgr; ow->GetWindowRect(&owr); ScreenToClient(&owr);
   m_progress.GetWindowRect(&pgr);
   ow->SetWindowPos(NULL, owr.left, owr.top, owr.Width(), owr.Height()-pgr.Height(), SWP_NOACTIVATE|SWP_NOZORDER);
+
+  // try to start decompressor
+  m_decomp = StartDecompress(m_fsImage, m_fsImageSize);
+  // only if we decompress we need a worker thread
+  if (m_decomp) {
+    // ready to go, now invoke the background thread to run the decompression loop...
+    m_decompOutputSpaceAvailable = CreateEvent(NULL, FALSE, TRUE, NULL);
+    m_decompOutputAvailable = CreateEvent(NULL, FALSE, FALSE, NULL);
+    m_decompOutputLen = 0;
+    m_curDecompTarget = 0;
+    AfxBeginThread(dcompressionStarter, this);
+  }
+
   for (;;) {
 
-    {
-      double full = (double)m_inputFileSize, cur = (double)m_fileOffset;
-      int perc = (int)(cur/full*100.0+.5);
-      m_progress.SetPos(perc);
-      CString si, sw, out;
-      FormatSize(m_fileOffset, si);
-      FormatSize(m_sizeWritten, sw);
-      out.Format(IDS_WRITE_PROGRESS, si, sw);
-      ow->SetWindowText(out);
-      Poll();
-    }
+    UpdateWriteProgress();
 
     const BYTE *outData = NULL;
     DWORD outSize = 0;
 
-    if (decomp) {
-      if (decomp->isError()) 
-        break;
-      if (decomp->needInputData()) {
-        UnmapViewOfFile(m_fsImage);
-        if (AdvanceMapOffset() && MapInputView()) {
-          decomp->AddInputData(m_fsImage, m_fsImageSize);
-          if (decomp->outputSpace() > 0 && decomp->needInputData())
-            continue;
-        }
-      }
-      if (decomp->outputSpace() == OUTPUT_BUF_SIZE) {
-        if (decomp->allDone()) 
-          break;
-        continue;
-      }
-      outData = m_outputBuffer;
-      outSize =  OUTPUT_BUF_SIZE - decomp->outputSpace();
+    if (m_decomp) {
+      vector<HANDLE> objs;
+      objs.push_back(m_decompOutputAvailable);
+      WaitAndPoll(objs, INFINITE);
+      outData = m_outputBuffer + m_curDecompTarget*(OUTPUT_BUF_SIZE/2);
+      outSize = m_decompOutputLen;
+      if (outSize == 0) break;
+      m_curDecompTarget = m_curDecompTarget ? 0 : 1;
+      SetEvent(m_decompOutputSpaceAvailable);
     } else {
       if (m_fsImageSize % secSize) {
         // will need padding, copy over to writable buffer
@@ -688,6 +730,8 @@ void CRawrite32Dlg::OnWriteImage()
       DWORD cb = 0;
       BOOL fResult = DeviceIoControl(m_outputDevice,  VWIN32_DIOC_DOS_INT26, &reg, sizeof(reg),  &reg, sizeof(reg), &cb, 0);
       if (!fResult || (reg.reg_Flags & 0x0001)) {
+        InterlockedExchange(&m_decompForcedExit, 1);
+        SetEvent(m_decompOutputSpaceAvailable);
         AfxMessageBox(IDP_WRITE_ERROR,MB_OK|MB_ICONERROR);
         success = false;
         break;
@@ -698,18 +742,24 @@ void CRawrite32Dlg::OnWriteImage()
     } else
 #endif // not i386
     {
-      DWORD written = 0;
-      if (!WriteFile(m_outputDevice, outData, outSize, &written, NULL) || written != outSize) {
-        ShowError(GetLastError(), IDP_WRITE_ERROR);
-        success = false;
-        break;
+      while (outSize > 0) {
+        DWORD written = 0;
+        DWORD size = outSize;
+        if (size > MAX_WRITE_CHUNK) size = MAX_WRITE_CHUNK;
+        if (!WriteFile(m_outputDevice, outData, size, &written, NULL) || written != size) {
+          InterlockedExchange(&m_decompForcedExit, 1);
+          SetEvent(m_decompOutputSpaceAvailable);
+          ShowError(GetLastError(), IDP_WRITE_ERROR);
+          success = false;
+          break;
+        }
+        m_sizeWritten += written;
+        outSize -= written;
+        UpdateWriteProgress();
       }
-      m_sizeWritten += written;
     }
 
-    if (decomp && decomp->outputSpace() == 0)
-      decomp->SetOutputSpace(m_outputBuffer, OUTPUT_BUF_SIZE);
-    if (!decomp) {
+    if (!m_decomp) {
       UnmapViewOfFile(m_fsImage);
       if (!AdvanceMapOffset()) break;
       if (!MapInputView()) break;
@@ -717,6 +767,11 @@ void CRawrite32Dlg::OnWriteImage()
   }
   m_progress.ShowWindow(SW_HIDE);
   ow->SetWindowPos(NULL, owr.left, owr.top, owr.Width(), owr.Height(), SWP_NOACTIVATE|SWP_NOZORDER);
+
+  if (m_decomp) {
+    CloseHandle(m_decompOutputSpaceAvailable);
+    CloseHandle(m_decompOutputAvailable);
+  }
 
   if (m_fsImage) { UnmapViewOfFile(m_fsImage); m_fsImage = NULL; }
 
@@ -732,14 +787,14 @@ void CRawrite32Dlg::OnWriteImage()
     CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
   }
 
-  if (decomp) {
-    if (decomp->isError()) {
+  if (m_decomp) {
+    if (m_decomp->isError()) {
       CString msg;
       msg.LoadString(IDP_DECOMP_ERROR);
       m_output += "\r\n" + msg;
       success = false;
     }
-    decomp->Delete();
+    m_decomp->Delete();
   }
 
   if (success) {
@@ -749,6 +804,19 @@ void CRawrite32Dlg::OnWriteImage()
     m_output += msg;
   }
   ShowOutput();
+}
+
+void CRawrite32Dlg::UpdateWriteProgress()
+{
+  double full = (double)m_inputFileSize, cur = (double)m_fileOffset;
+  int perc = (int)(cur/full*100.0+.5);
+  m_progress.SetPos(perc);
+  CString si, sw, out;
+  FormatSize(m_fileOffset, si);
+  FormatSize(m_sizeWritten, sw);
+  out.Format(IDS_WRITE_PROGRESS, si, sw);
+  GetDlgItem(IDC_OUTPUT)->SetWindowText(out);
+  Poll();
 }
 
 void CRawrite32Dlg::CloseInputFile()

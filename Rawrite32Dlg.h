@@ -105,6 +105,19 @@ protected:
   void FormatSize(DWORD64, CString&); // format a human readable size from a value in bytes
   void ShowError(DWORD err, UINT id);
   void ShowOutput();
+  void UpdateWriteProgress();
+
+protected:
+  // background decompression thread
+  static UINT __cdecl dcompressionStarter(void *token);
+  UINT BackgroundDecompressor();
+protected:
+  interface IGenericDecompressor *m_decomp; // decompressor to use
+  HANDLE m_decompOutputSpaceAvailable;  // event: decompressor input available
+  HANDLE m_decompOutputAvailable;     // event: write buffer ready for output
+  DWORD m_decompOutputLen;            // amount of decompressor output ready
+  DWORD m_curDecompTarget;            // 0 or 1, decompressor writes to first or second half of the output buffer
+  volatile LONG m_decompForcedExit;   // if != 0 the decompressor exits ASAP
 
 protected:
 	// Generated message map functions
