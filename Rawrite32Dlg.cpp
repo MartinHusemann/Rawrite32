@@ -525,7 +525,7 @@ void CRawrite32Dlg::ShowError(DWORD err, UINT id)
   CString t; t.Format("%s\r\nError code: %u", msg, err);
   m_output += t;
   ShowOutput();
-  AfxMessageBox(id);
+  AfxMessageBox(id, MB_OK|MB_ICONERROR);
 }
 
 void CRawrite32Dlg::ShowOutput()
@@ -548,7 +548,7 @@ void CRawrite32Dlg::OnWriteImage()
   m_drives.GetLBText(ndx, drive);
 
   msg.Format(IDP_ARE_YOU_SURE, drive);
-  if (AfxMessageBox(msg, MB_YESNO|MB_ICONSTOP, IDP_ARE_YOU_SURE) != IDYES)
+  if (AfxMessageBox(msg, MB_YESNO|MB_ICONQUESTION, IDP_ARE_YOU_SURE) != IDYES)
     return;
 
   bool success = true;
@@ -688,7 +688,7 @@ void CRawrite32Dlg::OnWriteImage()
       DWORD cb = 0;
       BOOL fResult = DeviceIoControl(m_outputDevice,  VWIN32_DIOC_DOS_INT26, &reg, sizeof(reg),  &reg, sizeof(reg), &cb, 0);
       if (!fResult || (reg.reg_Flags & 0x0001)) {
-        AfxMessageBox(IDP_WRITE_ERROR);
+        AfxMessageBox(IDP_WRITE_ERROR,MB_OK|MB_ICONERROR);
         success = false;
         break;
       }
@@ -877,7 +877,7 @@ bool CRawrite32Dlg::VerifyInput()
 done:
   GetDlgItem(IDC_WRITE_DISK)->EnableWindow(retVal);
   if (showMsg)
-    AfxMessageBox(IDP_BAD_SKIP);
+    AfxMessageBox(IDP_BAD_SKIP,MB_OK|MB_ICONERROR);
   return retVal;
 }
 
