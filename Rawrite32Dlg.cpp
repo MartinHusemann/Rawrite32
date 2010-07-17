@@ -58,6 +58,9 @@
 // size of the decompression buffer
 #define OUTPUT_BUF_SIZE (128*1024*1024)
 
+// size of the first chunk of output data decompressed
+#define FIRST_OUTPUT_BUF_SIZE  (8*1024*1024)
+
 // maximum size of a single write request to the raw output device
 #define MAX_WRITE_CHUNK (1*1024*1024)
 
@@ -550,14 +553,21 @@ UINT CRawrite32Dlg::dcompressionStarter(void *token)
 
 UINT CRawrite32Dlg::BackgroundDecompressor()
 {
+  bool firstTime = true;
+
   for (;;) {
-    if (m_decompForcedExit) break;
+    if (m_decompForcedExit)
+      break;
 
     WaitForSingleObject(m_decompOutputSpaceAvailable, INFINITE);
-    m_decomp->SetOutputSpace(m_outputBuffer + m_curDecompTarget*(OUTPUT_BUF_SIZE/2), OUTPUT_BUF_SIZE/2);
+
+    DWORD outBufSize = firstTime ? FIRST_OUTPUT_BUF_SIZE : (OUTPUT_BUF_SIZE/2);
+    firstTime = false;
+    m_decomp->SetOutputSpace(m_outputBuffer + m_curDecompTarget*(OUTPUT_BUF_SIZE/2), outBufSize);
 
 decompMore:
-    if (m_decompForcedExit) break;
+    if (m_decompForcedExit)
+      break;
 
     if (m_decomp->isError())  {
       m_decompOutputLen = 0;
@@ -572,7 +582,7 @@ decompMore:
           goto decompMore;
       }
     }
-    if (m_decomp->outputSpace() == OUTPUT_BUF_SIZE) {
+    if (m_decomp->outputSpace() == outBufSize) {
       if (m_decomp->allDone()) {
         m_decompOutputLen = 0;
         SetEvent(m_decompOutputAvailable);
@@ -580,7 +590,7 @@ decompMore:
       }
       goto decompMore;
     }
-    m_decompOutputLen = OUTPUT_BUF_SIZE - m_decomp->outputSpace();
+    m_decompOutputLen = outBufSize - m_decomp->outputSpace();
     SetEvent(m_decompOutputAvailable);
   }
   return 0;
@@ -639,6 +649,7 @@ void CRawrite32Dlg::OnWriteImage()
   }
 
   CWaitCursor hourglass;
+  EnableDlgChildControls(false);
   m_fileOffset = 0;
   m_fsImageSize = 0;
   MapInputView();
@@ -758,6 +769,8 @@ void CRawrite32Dlg::OnWriteImage()
         UpdateWriteProgress();
       }
     }
+    if (!success)
+      break;
 
     if (!m_decomp) {
       UnmapViewOfFile(m_fsImage);
@@ -767,6 +780,7 @@ void CRawrite32Dlg::OnWriteImage()
   }
   m_progress.ShowWindow(SW_HIDE);
   ow->SetWindowPos(NULL, owr.left, owr.top, owr.Width(), owr.Height(), SWP_NOACTIVATE|SWP_NOZORDER);
+  EnableDlgChildControls(true);
 
   if (m_decomp) {
     CloseHandle(m_decompOutputSpaceAvailable);
@@ -804,6 +818,16 @@ void CRawrite32Dlg::OnWriteImage()
     m_output += msg;
   }
   ShowOutput();
+}
+
+void CRawrite32Dlg::EnableDlgChildControls(bool enable)
+{
+  GetDlgItem(IDC_WRITE_DISK)->EnableWindow(enable);
+  GetDlgItem(IDOK)->EnableWindow(enable);
+  GetDlgItem(IDC_DRIVES)->EnableWindow(enable);
+  GetDlgItem(IDC_BROWSE)->EnableWindow(enable);
+  GetDlgItem(IDC_IMAGE_NAME)->EnableWindow(enable);
+  GetDlgItem(IDC_SECTOR_SKIP)->EnableWindow(enable);
 }
 
 void CRawrite32Dlg::UpdateWriteProgress()
@@ -1027,7 +1051,7 @@ void CRawrite32Dlg::CalcHashes(CString &out)
     AfxBeginThread(hashThreadWorker, &hashes[i]);
 
   // loop over the whole input file
-  EnableWindow(FALSE);
+  EnableDlgChildControls(false);
   m_fileOffset = 0;
   for (;;) {
     if (!MapInputView()) break;
@@ -1047,7 +1071,7 @@ void CRawrite32Dlg::CalcHashes(CString &out)
     } while (WaitAndPoll(handles, 750));
     if (!AdvanceMapOffset()) break;
   }
-  EnableWindow();
+  EnableDlgChildControls(true);
   // done, notify worker threads
   for (size_t i = 0; i < hashes.size(); i++) {
     hashes[i].input = NULL;

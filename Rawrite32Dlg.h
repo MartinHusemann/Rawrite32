@@ -106,6 +106,8 @@ protected:
   void ShowError(DWORD err, UINT id);
   void ShowOutput();
   void UpdateWriteProgress();
+  void EnableDlgChildControls(bool enable);
+
 
 protected:
   // background decompression thread
