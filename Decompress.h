@@ -37,7 +37,8 @@ interface IGenericDecompressor {
   virtual bool needInputData() PURE;    // return true if caller should add more input data
   virtual void AddInputData(const BYTE *data, size_t len) PURE;
   virtual void SetOutputSpace(BYTE *out, size_t len) PURE;
-  virtual size_t outputSpace() PURE;   // return size of the output buffer filled so far
+  virtual size_t outputSpace() PURE;   // return remaining size of the output buffer
+  virtual void LimitOutputSpace(size_t len) PURE; // reduce the available output buffer size to the new len
   virtual void Delete() PURE;
 };
 

@@ -58,8 +58,8 @@
 // size of the decompression buffer
 #define OUTPUT_BUF_SIZE (128*1024*1024)
 
-// size of the first chunk of output data decompressed
-#define FIRST_OUTPUT_BUF_SIZE  (8*1024*1024)
+// decompression output has to be a multiple of this before swapping buffers
+#define OUTPUT_BUF_CHUNK_SIZE  (1*1024*1024)
 
 // maximum size of a single write request to the raw output device
 #define MAX_WRITE_CHUNK (1*1024*1024)
@@ -178,7 +178,7 @@ CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
     m_decompOutputSpaceAvailable(INVALID_HANDLE_VALUE),
     m_decompOutputAvailable(INVALID_HANDLE_VALUE),
     m_decomp(NULL),
-    m_decompOutputLen(0), m_curDecompTarget(0), m_decompForcedExit(0),
+    m_decompOutputLen(0), m_curDecompTarget(0), m_decompForcedExit(0), m_writerIdle(0),
     m_outputBuffer(new BYTE[OUTPUT_BUF_SIZE])
 #ifdef _M_IX86
     , m_usingVXD(RunningOnDOS()), m_sectorOut(0)
@@ -553,21 +553,24 @@ UINT CRawrite32Dlg::dcompressionStarter(void *token)
 
 UINT CRawrite32Dlg::BackgroundDecompressor()
 {
-  bool firstTime = true;
-
   for (;;) {
     if (m_decompForcedExit)
       break;
 
     WaitForSingleObject(m_decompOutputSpaceAvailable, INFINITE);
-
-    DWORD outBufSize = firstTime ? FIRST_OUTPUT_BUF_SIZE : (OUTPUT_BUF_SIZE/2);
-    firstTime = false;
+    DWORD outBufSize = OUTPUT_BUF_SIZE/2;
     m_decomp->SetOutputSpace(m_outputBuffer + m_curDecompTarget*(OUTPUT_BUF_SIZE/2), outBufSize);
 
 decompMore:
     if (m_decompForcedExit)
       break;
+
+    if (m_writerIdle) {
+      size_t space = m_decomp->outputSpace();
+      size_t newSpace =  space & (OUTPUT_BUF_CHUNK_SIZE-1);
+      outBufSize -= space-newSpace;
+      m_decomp->LimitOutputSpace(newSpace);
+    }
 
     if (m_decomp->isError())  {
       m_decompOutputLen = 0;
@@ -681,9 +684,11 @@ void CRawrite32Dlg::OnWriteImage()
     DWORD outSize = 0;
 
     if (m_decomp) {
+      InterlockedExchange(&m_writerIdle, 1);
       vector<HANDLE> objs;
       objs.push_back(m_decompOutputAvailable);
       WaitAndPoll(objs, INFINITE);
+      InterlockedExchange(&m_writerIdle, 0);
       outData = m_outputBuffer + m_curDecompTarget*(OUTPUT_BUF_SIZE/2);
       outSize = m_decompOutputLen;
       if (outSize == 0) break;

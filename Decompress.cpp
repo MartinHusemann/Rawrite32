@@ -52,6 +52,7 @@ public:
   virtual void AddInputData(const BYTE *data, size_t len);
   virtual void SetOutputSpace(BYTE *out, size_t len);
   virtual size_t outputSpace();
+  virtual void LimitOutputSpace(size_t len);
   virtual void Delete();
 protected:
   CGzipDecompressor(const BYTE *data, size_t len);
@@ -174,6 +175,12 @@ size_t CGzipDecompressor::outputSpace()
   return m_decomp.avail_out;
 }
 
+void CGzipDecompressor::LimitOutputSpace(size_t len)
+{
+  ASSERT(len < m_decomp.avail_out);
+  m_decomp.avail_out = len;
+}
+
 void CGzipDecompressor::Delete()
 {
   delete this;
@@ -188,6 +195,7 @@ public:
   virtual void AddInputData(const BYTE *data, size_t len);
   virtual void SetOutputSpace(BYTE *out, size_t len);
   virtual size_t outputSpace();
+  virtual void LimitOutputSpace(size_t len);
   virtual void Delete();
 protected:
   CBZ2Decompressor(const BYTE *data, size_t len);
@@ -263,6 +271,12 @@ void CBZ2Decompressor::SetOutputSpace(BYTE *out, size_t len)
 size_t CBZ2Decompressor::outputSpace()
 {
   return m_decomp.avail_out;
+}
+
+void CBZ2Decompressor::LimitOutputSpace(size_t len)
+{
+  ASSERT(len < m_decomp.avail_out);
+  m_decomp.avail_out = len;
 }
 
 void CBZ2Decompressor::Delete()

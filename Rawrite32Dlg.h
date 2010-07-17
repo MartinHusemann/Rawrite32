@@ -120,6 +120,7 @@ protected:
   DWORD m_decompOutputLen;            // amount of decompressor output ready
   DWORD m_curDecompTarget;            // 0 or 1, decompressor writes to first or second half of the output buffer
   volatile LONG m_decompForcedExit;   // if != 0 the decompressor exits ASAP
+  volatile LONG m_writerIdle;         // if != 0 the writer is waiting for more data
 
 protected:
 	// Generated message map functions
