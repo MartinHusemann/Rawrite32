@@ -38,7 +38,6 @@
 #include "Decompress.h"
 
 #include <winioctl.h>
-#include <map>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -179,7 +178,7 @@ CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
     m_decompOutputAvailable(INVALID_HANDLE_VALUE),
     m_decomp(NULL),
     m_decompOutputLen(0), m_curDecompTarget(0), m_decompForcedExit(0), m_writerIdle(0),
-    m_outputBuffer(new BYTE[OUTPUT_BUF_SIZE])
+    m_outputBuffer(new BYTE[OUTPUT_BUF_SIZE]), m_writeTargetLogicalVolume(false)
 #ifdef _M_IX86
     , m_usingVXD(RunningOnDOS()), m_sectorOut(0)
 #endif
@@ -189,6 +188,7 @@ CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
   EnableAutomation();
   m_imageName = imageFileName;
   m_output.LoadString(IDS_START_HINT);
+  if (m_usingVXD) m_writeTargetLogicalVolume = true;  // can only access DOS drives
 }
 
 CRawrite32Dlg::~CRawrite32Dlg()
@@ -349,6 +349,156 @@ struct STORAGE_DEVICE_DESCRIPTOR {
 
 /////////////////////////////////////////////////////////////////////////////
 // CRawrite32Dlg message handlers
+void CRawrite32Dlg::EnumPhysicalDrives()
+{
+  ASSERT(!m_usingVXD);
+
+  for (int i = 0; i < 15; i++) {
+    CString internalFileName;
+    internalFileName.Format("\\\\.\\PhysicalDrive%u", i);
+    HANDLE outputDevice = CreateFile(internalFileName, 0, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+    if (outputDevice != INVALID_HANDLE_VALUE) {
+      DriveSelectionEntry driveDesc;
+      driveDesc.driveNumber = i;
+      driveDesc.internalFileName = internalFileName;
+      DWORD bytes = 0;
+
+      union {
+        STORAGE_DEVICE_DESCRIPTOR header;
+        TCHAR buf[1024];
+      } desc;
+      STORAGE_PROPERTY_QUERY qry;
+      memset(&qry, 0, sizeof qry);
+      qry.PropertyId = StorageDeviceProperty;
+      qry.QueryType = PropertyStandardQuery;
+      if (DeviceIoControl(outputDevice, IOCTL_STORAGE_QUERY_PROPERTY, &qry, sizeof qry, &desc.header, sizeof desc, &bytes, NULL)
+          && bytes >= sizeof(STORAGE_DEVICE_DESCRIPTOR)) {
+        const char *strings = (const char *)&desc;
+        CString info;
+        if (desc.header.VendorIdOffset || desc.header.ProductIdOffset) {
+          if (desc.header.VendorIdOffset) {
+            CString t(strings + desc.header.VendorIdOffset);
+            t.Trim();
+            info = t;
+          }
+          if (desc.header.ProductIdOffset) {
+            CString t(strings + desc.header.ProductIdOffset);
+            t.Trim();
+            if (!info.IsEmpty()) info += " ";
+            info += t;
+          }
+          driveDesc.deviceName = info;
+        }
+      }
+      DISK_GEOMETRY geom;
+      if (DeviceIoControl(outputDevice, IOCTL_DISK_GET_DRIVE_GEOMETRY, NULL, 0, &geom, sizeof geom, &bytes, NULL)) {
+        DWORD64 size = (DWORD64)geom.Cylinders.QuadPart * geom.SectorsPerTrack * geom.TracksPerCylinder;
+        FormatSize(size, driveDesc.size,geom.BytesPerSector);
+      }
+      CloseHandle(outputDevice);
+      m_driveData.push_back(driveDesc);
+    }
+  }
+
+  // find logical volumes on the physical drives
+  TCHAR allDrives[32*4 + 10];
+  GetLogicalDriveStrings(sizeof allDrives/sizeof allDrives[0], allDrives);
+
+  LPCTSTR drive;
+  for (drive = allDrives; *drive; drive += _tcslen(drive)+1) {
+    CString internalFileName, vol(drive,2);
+    internalFileName.Format("\\\\.\\%s", vol);
+    HANDLE outputDevice = CreateFile(internalFileName, 0, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+    if (outputDevice != INVALID_HANDLE_VALUE) {
+      STORAGE_DEVICE_NUMBER sdn;
+      DWORD bytes = 0;
+      if (DeviceIoControl(outputDevice, IOCTL_STORAGE_GET_DEVICE_NUMBER, NULL, 0, &sdn, sizeof sdn, &bytes, NULL)) {
+        for (size_t i = 0; i < m_driveData.size(); i++) {
+          if (m_driveData[i].driveNumber == sdn.DeviceNumber)
+            m_driveData[i].volumes.push_back(vol);
+        }
+      }
+      CloseHandle(outputDevice);
+    }
+  }
+}
+
+void CRawrite32Dlg::EnumLogicalVolumes()
+{
+  TCHAR allDrives[32*4 + 10];
+  GetLogicalDriveStrings(sizeof allDrives/sizeof allDrives[0], allDrives);
+
+  LPCTSTR drive;
+  for (drive = allDrives; *drive; drive += _tcslen(drive)+1) {
+    
+    DWORD type = GetDriveType(drive);
+    if (type != DRIVE_CDROM && type != DRIVE_REMOTE && type != DRIVE_RAMDISK) {
+      CString volName(drive, 2);
+      DriveSelectionEntry driveDesc;
+      driveDesc.volumes.push_back(volName);
+      driveDesc.driveNumber = drive[0] - 'A';
+      driveDesc.internalFileName.Format(_T("\\\\.\\%s"), volName);
+
+      CString logName, fsName;
+      GetVolumeInformation(drive, logName.GetBuffer(200), 200, NULL, NULL, NULL, fsName.GetBuffer(200), 200);
+      logName.ReleaseBuffer(); fsName.ReleaseBuffer();
+      if (logName.IsEmpty())
+        driveDesc.deviceName = fsName;
+      else
+        driveDesc.deviceName = logName + ", " + fsName;
+      m_driveData.push_back(driveDesc);
+    }
+  }
+}
+
+void CRawrite32Dlg::FillDriveCombo()
+{
+  m_driveData.clear();
+  if (m_writeTargetLogicalVolume)
+    EnumLogicalVolumes();
+  else
+    EnumPhysicalDrives();
+
+  CString winDir, sysDir;
+  GetWindowsDirectory(winDir.GetBuffer(MAX_PATH), MAX_PATH); winDir.ReleaseBuffer(); winDir.MakeUpper();
+  GetSystemDirectory(sysDir.GetBuffer(MAX_PATH), MAX_PATH); sysDir.ReleaseBuffer(); sysDir.MakeUpper();
+  for (size_t i = 0; i < m_driveData.size(); i++) {
+    for (size_t j = 0; j < m_driveData[i].volumes.size(); j++) {
+      CString drive = m_driveData[i].volumes[j];
+      drive.MakeUpper();
+      // exclude the main disk from our list to avoid catastrophic disasters
+      if (winDir[1] == ':' && winDir[0] == drive[0]) m_driveData[i].hidden = true;;
+      if (sysDir[1] == ':' && sysDir[0] == drive[0]) m_driveData[i].hidden = true;;
+    }
+  }
+
+  m_drives.ResetContent();
+  for (size_t i = 0; i < m_driveData.size(); i++) {
+    if (m_driveData[i].hidden) continue;
+    CString display;
+    if (m_driveData[i].volumes.empty()) {
+      if (m_driveData[i].deviceName.IsEmpty()) {
+        CString physString; physString.LoadString(IDS_UNKNOWN_PHYSDEV); 
+        display.Format("%s %u", physString, m_driveData[i].driveNumber);
+      }
+    } else {
+      for (size_t j = 0; j < m_driveData[i].volumes.size(); j++) {
+        if (!display.IsEmpty()) display += " ";
+        display += m_driveData[i].volumes[j];
+      }
+    }
+    if (!m_driveData[i].deviceName.IsEmpty()) {
+      if (!display.IsEmpty()) display += " ";
+      display += m_driveData[i].deviceName;
+    }
+    if (!m_driveData[i].size.IsEmpty())
+      display += " [" + m_driveData[i].size + "]";
+    m_drives.SetItemData(m_drives.AddString(display), i);
+  }
+  
+  if (m_drives.GetCount() > 0)
+    m_drives.SetCurSel(m_drives.GetCount()-1);
+}
 
 BOOL CRawrite32Dlg::OnInitDialog()
 {
@@ -374,8 +524,17 @@ BOOL CRawrite32Dlg::OnInitDialog()
   	aboutMenu.LoadString(IDS_ABOUTBOX);
     optionsMenu.LoadString(IDS_OPTIONS_HASHES);
 		pSysMenu->AppendMenu(MF_SEPARATOR);
-		pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, aboutMenu);
 		pSysMenu->AppendMenu(MF_STRING, IDM_OPTIONS_HASHES, optionsMenu);
+    if (!m_usingVXD) {
+      pSysMenu->AppendMenu(MF_SEPARATOR);
+      CString logMenu, physMenu;
+      logMenu.LoadString(IDS_USE_VOLUMES);
+      physMenu.LoadString(IDS_USE_PHYSDISKS);
+      pSysMenu->AppendMenu(MF_STRING|(m_writeTargetLogicalVolume?0:MF_CHECKED), IDM_USE_PHYSDISK, physMenu); 
+      pSysMenu->AppendMenu(MF_STRING|(m_writeTargetLogicalVolume?MF_CHECKED:0), IDM_USE_VOLUMES, logMenu); 
+		  pSysMenu->AppendMenu(MF_SEPARATOR);
+    }
+		pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, aboutMenu);
   }
 
   SetIcon(m_hIcon, TRUE);			// Set big icon
@@ -386,61 +545,7 @@ BOOL CRawrite32Dlg::OnInitDialog()
   RegisterDragDrop(m_hWnd, dt);
   dt->Release();
 
-  TCHAR allDrives[32*4 + 10], winDir[MAX_PATH], sysDir[MAX_PATH];
-  GetLogicalDriveStrings(sizeof allDrives/sizeof allDrives[0], allDrives);
-  GetWindowsDirectory(winDir, MAX_PATH);
-  GetSystemDirectory(sysDir, MAX_PATH);
-
-  LPCTSTR drive;
-  m_drives.ResetContent();
-  for (drive = allDrives; *drive; drive += _tcslen(drive)+1) {
-    // exclude the main disk from our list to avoid catastrophic disasters
-    if (winDir[1] == ':' && _toupper(winDir[0]) == _toupper(drive[0])) continue;
-    if (sysDir[1] == ':' && _toupper(sysDir[0]) == _toupper(drive[0])) continue;
-    DWORD type = GetDriveType(drive);
-    if (type != DRIVE_CDROM && type != DRIVE_REMOTE && type != DRIVE_RAMDISK) {
-      CString name(drive, 2);
-      if (!m_usingVXD) {
-        // no idea how to get this information on Win9x - just ignore the difference there
-        CString internalName;
-        internalName.Format(_T("\\\\.\\%s"), name);
-        HANDLE outputDevice = CreateFile(internalName, 0, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-        if (outputDevice != INVALID_HANDLE_VALUE) {
-          union {
-            STORAGE_DEVICE_DESCRIPTOR header;
-            TCHAR buf[1024];
-          } desc;
-          STORAGE_PROPERTY_QUERY qry;
-          memset(&qry, 0, sizeof qry);
-          qry.PropertyId = StorageDeviceProperty;
-          qry.QueryType = PropertyStandardQuery;
-          DWORD bytes = 0;
-          if (DeviceIoControl(outputDevice, IOCTL_STORAGE_QUERY_PROPERTY, &qry, sizeof qry, &desc.header, sizeof desc, &bytes, NULL)
-              && bytes >= sizeof(STORAGE_DEVICE_DESCRIPTOR)) {
-            const char *strings = (const char *)&desc;
-            if (desc.header.VendorIdOffset || desc.header.ProductIdOffset) {
-              name += " (";
-              if (desc.header.VendorIdOffset) {
-                CString t(strings + desc.header.VendorIdOffset);
-                t.Trim();
-                name += t;
-                if (desc.header.ProductIdOffset) name += " ";
-              }
-              if (desc.header.ProductIdOffset) {
-                CString t(strings + desc.header.ProductIdOffset);
-                t.Trim();
-                name += t;
-              }
-              name += ")";
-            }
-          }
-         CloseHandle(outputDevice);
-        }
-      }
-      m_drives.AddString(name);
-    }
-  }
-  m_drives.SetCurSel(m_drives.GetCount()-1);
+  FillDriveCombo();
 
   if (m_imageName)
     GetDlgItem(IDC_IMAGE_NAME)->SetWindowText(m_imageName);
@@ -456,6 +561,14 @@ void CRawrite32Dlg::OnSysCommand(UINT nID, LPARAM lParam)
   } else if ((nID & 0xFFF0) == IDM_OPTIONS_HASHES) {
     CHashOptionsDlg dlgOptions;
     dlgOptions.DoModal();
+  } else if ((nID & 0xFFF0) == IDM_USE_PHYSDISK || (nID & 0xFFF0) == IDM_USE_VOLUMES) {
+    bool nval = (nID & 0xFFF0) == IDM_USE_VOLUMES;
+    if (nval == m_writeTargetLogicalVolume) return;
+    m_writeTargetLogicalVolume = nval;
+    CMenu* pSysMenu = GetSystemMenu(FALSE);
+    pSysMenu->CheckMenuItem(IDM_USE_PHYSDISK, MF_BYCOMMAND|(m_writeTargetLogicalVolume?0:MF_CHECKED));
+    pSysMenu->CheckMenuItem(IDM_USE_VOLUMES, MF_BYCOMMAND|(m_writeTargetLogicalVolume?MF_CHECKED:0));
+    FillDriveCombo();
   } else {
   	CDialog::OnSysCommand(nID, lParam);
   }
@@ -606,9 +719,13 @@ void CRawrite32Dlg::OnWriteImage()
 
   int ndx = m_drives.GetCurSel();
   if (ndx == CB_ERR) return;
+  DWORD ddIndex = m_drives.GetItemData(ndx);
+  if (ddIndex >= m_driveData.size()) return;
 
-  CString drive, msg;
+  DWORD driveIndex = 0;
+  CString drive, msg, internalFileName;
   m_drives.GetLBText(ndx, drive);
+  internalFileName = m_driveData[ddIndex].internalFileName;
 
   msg.Format(IDP_ARE_YOU_SURE, drive);
   if (AfxMessageBox(msg, MB_YESNO|MB_ICONQUESTION, IDP_ARE_YOU_SURE) != IDYES)
@@ -629,9 +746,7 @@ void CRawrite32Dlg::OnWriteImage()
 #endif
   {
     // Windows NT does it the UNIX way...
-    CString internalName;
-    internalName.Format(_T("\\\\.\\%s"), drive.Left(2));
-    m_outputDevice = CreateFile(internalName, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+    m_outputDevice = CreateFile(internalFileName, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
     if (m_outputDevice == INVALID_HANDLE_VALUE) {
       ShowError(GetLastError(), IDP_NO_DISK);
       return;
@@ -737,7 +852,7 @@ void CRawrite32Dlg::OnWriteImage()
        * DS:BX -> data to write
        */
       drive.MakeUpper();
-      reg.reg_EAX = drive[0] - 'A';
+      reg.reg_EAX = driveIndex;
       reg.reg_ECX = outSize / SECTOR_SIZE;
       reg.reg_EDX = m_sectorOut;
       reg.reg_EBX = (DWORD)outData;
@@ -882,21 +997,23 @@ bool CRawrite32Dlg::AdvanceMapOffset()
   return true;
 }
 
-void CRawrite32Dlg::FormatSize(DWORD64 sz, CString &out)
+void CRawrite32Dlg::FormatSize(DWORD64 sz, CString &out, DWORD addFactor)
 {
+  double v = (double)sz;
+  if (addFactor != 1) v *= (double)addFactor;
   CString unit, t;
-  if (sz > 1024*1024) {
-    double v = (double)sz/(double)(1024*1024);
-    if (v < 1024.0) {
-      t.Format("%.1f", v);
-      unit.LoadString(IDS_SIZE_MBYTE);
-    } else {
-      t.Format("%.2f", v/1024.0);
-      unit.LoadString(IDS_SIZE_GBYTE);
-    }
-  } else {
-    t.Format("%lu", (DWORD)sz);
+  if (v < 1024.0) {
+    t.Format("%lu", (DWORD)sz * addFactor);
     unit.LoadString(IDS_SIZE_BYTE);
+  } else if (v < 1024.0*1024.0) {
+    t.Format("%.1f", v/1024.0);
+    unit.LoadString(IDS_SIZE_KBYTE);
+  } else if (v < 1024.0*1024.0*1024.0) {
+    t.Format("%.1f", v/(1024.0*1024.0));
+    unit.LoadString(IDS_SIZE_MBYTE);
+  } else {
+    t.Format("%.2f", v/(1024.0*1024.0*1024.0));
+    unit.LoadString(IDS_SIZE_GBYTE);
   }
   out = t + " " + unit;
 }

@@ -66,10 +66,25 @@ public:
 protected:
 	HICON m_hIcon;          // program icon
   HICON m_hSmallIcon;     // and a small variant of it
-  CFont m_outWinFont;
+  CFont m_outWinFont;     // font used for the output window
 
+  // dialog data
   CString m_imageName;    // file path of the input image
+  DWORD m_sectorSkip;     // don't touch this many sectors on the output
+                          // drive (i.e. the image is written starting at the sector given here)
+  // target drive selection
+  struct DriveSelectionEntry {
+    CString deviceName;       // product/manufacturer/version hardware description (if available)
+    CString internalFileName; // unused on DOS
+    CString size;
+    DWORD driveNumber;        // internal drive number (physical disk index) or DOS drive number
+    vector<CString> volumes;  // list of drive letters found on this disk
+    bool hidden;              // do not display this entry, as i.e. C:\Windows points to it
+    DriveSelectionEntry() : driveNumber(~0U), hidden(false) {}
+  };
+  vector<DriveSelectionEntry> m_driveData; // raw data of combo box contentents, ItemData is the index in this vector
 
+  // sliding view on mapped input file and output statistics
   HANDLE m_inputFile;     // input file handle
   HANDLE m_inputMapping;  // file mapping handle
   DWORD64 m_inputFileSize;// file size of input image
@@ -77,9 +92,6 @@ protected:
   DWORD64 m_sizeWritten;  // bytes written to output device
   const BYTE *m_fsImage;  // input image
   size_t m_fsImageSize;   // size of input image
-
-  DWORD m_sectorSkip;     // don't touch this many sectors on the output
-                          // drive (i.e. the image is written startin at the sector given here)
 
   // during decompression:
   const BYTE *m_curInput; // pointer to next input data
@@ -102,12 +114,14 @@ protected:
   void Poll();                        // handle all waiting messages
   bool MapInputView();                // map the next block at the current input offset
   bool AdvanceMapOffset();            // advance the input offset, return false if past end of file
-  void FormatSize(DWORD64, CString&); // format a human readable size from a value in bytes
+  void FormatSize(DWORD64, CString&, DWORD addFactor = 1); // format a human readable size from a value in bytes
   void ShowError(DWORD err, UINT id);
   void ShowOutput();
   void UpdateWriteProgress();
   void EnableDlgChildControls(bool enable);
-
+  void FillDriveCombo();
+  void EnumPhysicalDrives();
+  void EnumLogicalVolumes();
 
 protected:
   // background decompression thread
@@ -121,6 +135,9 @@ protected:
   DWORD m_curDecompTarget;            // 0 or 1, decompressor writes to first or second half of the output buffer
   volatile LONG m_decompForcedExit;   // if != 0 the decompressor exits ASAP
   volatile LONG m_writerIdle;         // if != 0 the writer is waiting for more data
+
+  // device selection
+  bool m_writeTargetLogicalVolume;    // if true, write to logical volumes (instead of physical disk devices)
 
 protected:
 	// Generated message map functions

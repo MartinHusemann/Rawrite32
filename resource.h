@@ -4,6 +4,8 @@
 //
 #define IDM_ABOUTBOX                    0x0010
 #define IDM_OPTIONS_HASHES              0x0020
+#define IDM_USE_PHYSDISK                0x0030
+#define IDM_USE_VOLUMES                 0x0040
 #define IDD_ABOUTBOX                    100
 #define IDS_ABOUTBOX                    101
 #define IDD_RAWRITE32_DIALOG            102
@@ -39,6 +41,10 @@
 #define IDS_SIZE_MBYTE                  1017
 #define IDS_SIZE_GBYTE                  1018
 #define IDS_OPTIONS_HASHES              1019
+#define IDS_USE_VOLUMES                 1020
+#define IDS_USE_PHYSDISKS               1021
+#define IDS_SIZE_KBYTE                  1022
+#define IDS_UNKNOWN_PHYSDEV             1023
 
 // Next default values for new objects
 // 
