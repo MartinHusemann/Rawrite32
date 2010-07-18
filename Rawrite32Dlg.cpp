@@ -353,51 +353,50 @@ void CRawrite32Dlg::EnumPhysicalDrives()
 {
   ASSERT(!m_usingVXD);
 
-  for (int i = 0; i < 15; i++) {
+  for (DWORD i = 0; ; i++) {
     CString internalFileName;
     internalFileName.Format("\\\\.\\PhysicalDrive%u", i);
     HANDLE outputDevice = CreateFile(internalFileName, 0, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-    if (outputDevice != INVALID_HANDLE_VALUE) {
-      DriveSelectionEntry driveDesc;
-      driveDesc.driveNumber = i;
-      driveDesc.internalFileName = internalFileName;
-      DWORD bytes = 0;
+    if (outputDevice == INVALID_HANDLE_VALUE) break;
+    DriveSelectionEntry driveDesc;
+    driveDesc.driveNumber = i;
+    driveDesc.internalFileName = internalFileName;
+    DWORD bytes = 0;
 
-      union {
-        STORAGE_DEVICE_DESCRIPTOR header;
-        TCHAR buf[1024];
-      } desc;
-      STORAGE_PROPERTY_QUERY qry;
-      memset(&qry, 0, sizeof qry);
-      qry.PropertyId = StorageDeviceProperty;
-      qry.QueryType = PropertyStandardQuery;
-      if (DeviceIoControl(outputDevice, IOCTL_STORAGE_QUERY_PROPERTY, &qry, sizeof qry, &desc.header, sizeof desc, &bytes, NULL)
-          && bytes >= sizeof(STORAGE_DEVICE_DESCRIPTOR)) {
-        const char *strings = (const char *)&desc;
-        CString info;
-        if (desc.header.VendorIdOffset || desc.header.ProductIdOffset) {
-          if (desc.header.VendorIdOffset) {
-            CString t(strings + desc.header.VendorIdOffset);
-            t.Trim();
-            info = t;
-          }
-          if (desc.header.ProductIdOffset) {
-            CString t(strings + desc.header.ProductIdOffset);
-            t.Trim();
-            if (!info.IsEmpty()) info += " ";
-            info += t;
-          }
-          driveDesc.deviceName = info;
+    union {
+      STORAGE_DEVICE_DESCRIPTOR header;
+      TCHAR buf[1024];
+    } desc;
+    STORAGE_PROPERTY_QUERY qry;
+    memset(&qry, 0, sizeof qry);
+    qry.PropertyId = StorageDeviceProperty;
+    qry.QueryType = PropertyStandardQuery;
+    if (DeviceIoControl(outputDevice, IOCTL_STORAGE_QUERY_PROPERTY, &qry, sizeof qry, &desc.header, sizeof desc, &bytes, NULL)
+        && bytes >= sizeof(STORAGE_DEVICE_DESCRIPTOR)) {
+      const char *strings = (const char *)&desc;
+      CString info;
+      if (desc.header.VendorIdOffset || desc.header.ProductIdOffset) {
+        if (desc.header.VendorIdOffset) {
+          CString t(strings + desc.header.VendorIdOffset);
+          t.Trim();
+          info = t;
         }
+        if (desc.header.ProductIdOffset) {
+          CString t(strings + desc.header.ProductIdOffset);
+          t.Trim();
+          if (!info.IsEmpty()) info += " ";
+          info += t;
+        }
+        driveDesc.deviceName = info;
       }
-      DISK_GEOMETRY geom;
-      if (DeviceIoControl(outputDevice, IOCTL_DISK_GET_DRIVE_GEOMETRY, NULL, 0, &geom, sizeof geom, &bytes, NULL)) {
-        DWORD64 size = (DWORD64)geom.Cylinders.QuadPart * geom.SectorsPerTrack * geom.TracksPerCylinder;
-        FormatSize(size, driveDesc.size,geom.BytesPerSector);
-      }
-      CloseHandle(outputDevice);
-      m_driveData.push_back(driveDesc);
     }
+    DISK_GEOMETRY geom;
+    if (DeviceIoControl(outputDevice, IOCTL_DISK_GET_DRIVE_GEOMETRY, NULL, 0, &geom, sizeof geom, &bytes, NULL)) {
+      DWORD64 size = (DWORD64)geom.Cylinders.QuadPart * geom.SectorsPerTrack * geom.TracksPerCylinder;
+      FormatSize(size, driveDesc.size,geom.BytesPerSector);
+    }
+    CloseHandle(outputDevice);
+    m_driveData.push_back(driveDesc);
   }
 
   // find logical volumes on the physical drives
