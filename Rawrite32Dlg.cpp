@@ -406,6 +406,8 @@ void CRawrite32Dlg::EnumPhysicalDrives()
   LPCTSTR drive;
   for (drive = allDrives; *drive; drive += _tcslen(drive)+1) {
     CString internalFileName, vol(drive,2);
+    DWORD type = GetDriveType(drive);
+    if (type == DRIVE_CDROM || type == DRIVE_REMOTE || type == DRIVE_RAMDISK) continue;
     internalFileName.Format(_T("\\\\.\\%s"), vol);
     HANDLE outputDevice = CreateFile(internalFileName, 0, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
     if (outputDevice != INVALID_HANDLE_VALUE) {
