@@ -353,11 +353,17 @@ void CRawrite32Dlg::EnumPhysicalDrives()
 {
   ASSERT(!m_usingVXD);
 
+  size_t errCnt = 0;
   for (DWORD i = 0; ; i++) {
     CString internalFileName;
     internalFileName.Format(_T("\\\\.\\PhysicalDrive%u"), i);
     HANDLE outputDevice = CreateFile(internalFileName, 0, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-    if (outputDevice == INVALID_HANDLE_VALUE) break;
+    if (outputDevice == INVALID_HANDLE_VALUE) {
+      errCnt++;
+      if (errCnt > 48) break;
+      continue;
+    }
+    errCnt = 0;
     DriveSelectionEntry driveDesc;
     driveDesc.driveNumber = i;
     driveDesc.internalFileName = internalFileName;
