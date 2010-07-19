@@ -55,7 +55,7 @@ public:
 
   virtual LPCTSTR HashName()
   {
-    return "MD5";
+    return _T("MD5");
   }
 
   virtual void AddData(const BYTE *data, DWORD len)
@@ -69,7 +69,7 @@ public:
     memset(hash, 0, sizeof hash);
     MD5Final(hash, &m_ctx);
 
-    out.Format("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+    out.Format(_T("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"),
                hash[0], hash[1], hash[2], hash[3], hash[4], hash[5], hash[6], hash[7], 
                hash[8], hash[9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15]);
   }
@@ -89,7 +89,7 @@ public:
 
   virtual LPCTSTR HashName()
   {
-    return "SHA1";
+    return _T("SHA1");
   }
 
   virtual void AddData(const BYTE *data, DWORD len)
@@ -105,7 +105,7 @@ public:
     
     CString res, t;
     for (size_t i = 0; i < SHA1_DIGEST_LENGTH; i++) {
-      t.Format("%02x", hash[i]);
+      t.Format(_T("%02x"), hash[i]);
       res += t;
     }
     out = res;
@@ -127,7 +127,7 @@ public:
 
   virtual LPCTSTR HashName()
   {
-    return "SHA256";
+    return _T("SHA256");
   }
 
   virtual void AddData(const BYTE *data, DWORD len)
@@ -143,7 +143,7 @@ public:
     
     CString res, t;
     for (size_t i = 0; i < SHA256_DIGEST_LENGTH; i++) {
-      t.Format("%02x", hash[i]);
+      t.Format(_T("%02x"), hash[i]);
       res += t;
     }
     out = res;
@@ -164,7 +164,7 @@ public:
 
   virtual LPCTSTR HashName()
   {
-    return "SHA512";
+    return _T("SHA512");
   }
 
   virtual void AddData(const BYTE *data, DWORD len)
@@ -180,7 +180,7 @@ public:
     
     CString res, t;
     for (size_t i = 0; i < SHA512_DIGEST_LENGTH; i++) {
-      t.Format("%02x", hash[i]);
+      t.Format(_T("%02x"), hash[i]);
       res += t;
     }
     out = res;
@@ -257,7 +257,7 @@ CRegCash::~CRegCash()
 void CRegCash::Open()
 {
   if (m_open) return;
-  m_key = AfxGetApp()->GetSectionKey("hashes");
+  m_key = AfxGetApp()->GetSectionKey(_T("hashes"));
   m_open = true;
   for (DWORD i = 0; ; i++) {
     TCHAR hashName[1000];
@@ -279,7 +279,7 @@ bool CRegCash::hash(LPCTSTR hashName)
   if (info.dwNumberOfProcessors >= 4)
     res = true;
   else
-    res = _tcscmp(hashName, "MD5") == 0 || _tcscmp(hashName, "SHA512") == 0;
+    res = _tcscmp(hashName, _T("MD5")) == 0 || _tcscmp(hashName, _T("SHA512")) == 0;
   SetHash(hashName, res);
   return res;
 }

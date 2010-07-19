@@ -133,7 +133,7 @@ BOOL CHashOptionsDlg::OnInitDialog()
   vector<CString> hashNames;
   GetAllHashNames(hashNames);
   lc.GetClientRect(&r);
-  lc.InsertColumn(1, "", 0, r.Width()-GetSystemMetrics(SM_CXVSCROLL)-1);
+  lc.InsertColumn(1, _T(""), 0, r.Width()-GetSystemMetrics(SM_CXVSCROLL)-1);
   lc.SetExtendedStyle(lc.GetExtendedStyle()|LVS_EX_CHECKBOXES);
   for (size_t i = 0; i < hashNames.size(); i++) {
     int ndx = lc.InsertItem(i, hashNames[i]);
@@ -355,7 +355,7 @@ void CRawrite32Dlg::EnumPhysicalDrives()
 
   for (DWORD i = 0; ; i++) {
     CString internalFileName;
-    internalFileName.Format("\\\\.\\PhysicalDrive%u", i);
+    internalFileName.Format(_T("\\\\.\\PhysicalDrive%u"), i);
     HANDLE outputDevice = CreateFile(internalFileName, 0, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
     if (outputDevice == INVALID_HANDLE_VALUE) break;
     DriveSelectionEntry driveDesc;
@@ -406,7 +406,7 @@ void CRawrite32Dlg::EnumPhysicalDrives()
   LPCTSTR drive;
   for (drive = allDrives; *drive; drive += _tcslen(drive)+1) {
     CString internalFileName, vol(drive,2);
-    internalFileName.Format("\\\\.\\%s", vol);
+    internalFileName.Format(_T("\\\\.\\%s"), vol);
     HANDLE outputDevice = CreateFile(internalFileName, 0, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
     if (outputDevice != INVALID_HANDLE_VALUE) {
       STORAGE_DEVICE_NUMBER sdn;
@@ -478,7 +478,7 @@ void CRawrite32Dlg::FillDriveCombo()
     if (m_driveData[i].volumes.empty()) {
       if (m_driveData[i].deviceName.IsEmpty()) {
         CString physString; physString.LoadString(IDS_UNKNOWN_PHYSDEV); 
-        display.Format("%s %u", physString, m_driveData[i].driveNumber);
+        display.Format(_T("%s %u"), physString, m_driveData[i].driveNumber);
       }
     } else {
       for (size_t j = 0; j < m_driveData[i].volumes.size(); j++) {
@@ -644,7 +644,7 @@ void CRawrite32Dlg::OnNewImage()
 void CRawrite32Dlg::ShowError(DWORD err, UINT id)
 {
   CString msg; msg.LoadString(id);
-  CString t; t.Format("%s\r\nError code: %u", msg, err);
+  CString t; t.Format(_T("%s\r\nError code: %u"), msg, err);
   m_output += t;
   ShowOutput();
   AfxMessageBox(id, MB_OK|MB_ICONERROR);
@@ -735,7 +735,7 @@ void CRawrite32Dlg::OnWriteImage()
 #ifdef _M_IX86  // special case for legacy versions on arch=i386
   if (m_usingVXD) {
     // Windows 9x: can't write to devices, need DOS services via vwin32.vdx
-    m_outputDevice = CreateFile("\\\\.\\vwin32", 0, 0, NULL, 0, FILE_FLAG_DELETE_ON_CLOSE, NULL);
+    m_outputDevice = CreateFile(_T("\\\\.\\vwin32"), 0, 0, NULL, 0, FILE_FLAG_DELETE_ON_CLOSE, NULL);
     if (m_outputDevice == INVALID_HANDLE_VALUE) {
       ShowError(GetLastError(), IDP_NO_VXD);
       return;
@@ -1002,16 +1002,16 @@ void CRawrite32Dlg::FormatSize(DWORD64 sz, CString &out, DWORD addFactor)
   if (addFactor != 1) v *= (double)addFactor;
   CString unit, t;
   if (v < 1024.0) {
-    t.Format("%lu", (DWORD)sz * addFactor);
+    t.Format(_T("%lu"), (DWORD)sz * addFactor);
     unit.LoadString(IDS_SIZE_BYTE);
   } else if (v < 1024.0*1024.0) {
-    t.Format("%.1f", v/1024.0);
+    t.Format(_T("%.1f"), v/1024.0);
     unit.LoadString(IDS_SIZE_KBYTE);
   } else if (v < 1024.0*1024.0*1024.0) {
-    t.Format("%.1f", v/(1024.0*1024.0));
+    t.Format(_T("%.1f"), v/(1024.0*1024.0));
     unit.LoadString(IDS_SIZE_MBYTE);
   } else {
-    t.Format("%.2f", v/(1024.0*1024.0*1024.0));
+    t.Format(_T("%.2f"), v/(1024.0*1024.0*1024.0));
     unit.LoadString(IDS_SIZE_GBYTE);
   }
   out = t + " " + unit;
@@ -1206,7 +1206,7 @@ void CRawrite32Dlg::CalcHashes(CString &out)
   for (size_t i = 0; i < hashes.size(); i++) {
     enum { outSplitLen = 64 };
     CString out,name,p; hashes[i].hashImpl->HashResult(out);
-    name.Format("%-8s", hashes[i].hashImpl->HashName());
+    name.Format(_T("%-8s"), hashes[i].hashImpl->HashName());
     t += "\r\n" + name;
     while (out.GetLength() > outSplitLen) {
       t += out.Left(outSplitLen) + "\r\n        ";
