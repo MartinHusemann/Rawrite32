@@ -753,10 +753,25 @@ void CRawrite32Dlg::OnWriteImage()
       return;
     }
     DWORD bytes = 0;
-    if (DeviceIoControl(m_outputDevice, FSCTL_LOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL) == 0) {
-      ShowError(GetLastError(), IDP_CANT_LOCK_DISK);
-      CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
-      return;
+    if (m_writeTargetLogicalVolume) {
+      if (DeviceIoControl(m_outputDevice, FSCTL_LOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL) == 0) {
+        ShowError(GetLastError(), IDP_CANT_LOCK_DISK);
+        CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
+        return;
+      }
+    } else {
+      for (size_t i = 0; i < m_driveData[ddIndex].volumes.size(); i++) {
+        CString vol; vol.Format(_T("\\\\.\\%s"), m_driveData[ddIndex].volumes[i]);
+        HANDLE h = CreateFile(vol, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+        if (h != INVALID_HANDLE_VALUE) {
+          if (DeviceIoControl(h, FSCTL_DISMOUNT_VOLUME, NULL, 0, NULL, 0, &bytes, NULL) == 0) {
+            ShowError(GetLastError(), IDP_CANT_LOCK_DISK);
+            CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
+            return;
+          }
+          CloseHandle(h);
+        }
+      }
     }
 
     DISK_GEOMETRY_EX diskInfo;
@@ -926,7 +941,8 @@ void CRawrite32Dlg::OnWriteImage()
 #endif
   {
     DWORD bytes = 0;
-    DeviceIoControl(m_outputDevice, FSCTL_UNLOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL);
+    if (m_writeTargetLogicalVolume)
+      DeviceIoControl(m_outputDevice, FSCTL_UNLOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL);
     DeviceIoControl(m_outputDevice, IOCTL_DISK_UPDATE_PROPERTIES, NULL, 0, NULL, 0, &bytes, NULL);
     CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
   }
