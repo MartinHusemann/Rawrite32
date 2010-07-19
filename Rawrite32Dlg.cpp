@@ -772,13 +772,18 @@ void CRawrite32Dlg::OnWriteImage()
   m_fileOffset = 0;
   m_fsImageSize = 0;
   MapInputView();
-  m_progress.SetRange(0, 100);
-  m_progress.ShowWindow(SW_SHOW);
 
-  CWnd *ow = GetDlgItem(IDC_OUTPUT);
-  CRect owr, pgr; ow->GetWindowRect(&owr); ScreenToClient(&owr);
-  m_progress.GetWindowRect(&pgr);
-  ow->SetWindowPos(NULL, owr.left, owr.top, owr.Width(), owr.Height()-pgr.Height(), SWP_NOACTIVATE|SWP_NOZORDER);
+  CWnd *ow = NULL;
+  CRect owr;
+  if (!m_usingVXD) {
+    m_progress.SetRange(0, 100);
+    m_progress.ShowWindow(SW_SHOW);
+
+    ow = GetDlgItem(IDC_OUTPUT);
+    CRect pgr; ow->GetWindowRect(&owr); ScreenToClient(&owr);
+    m_progress.GetWindowRect(&pgr);
+    ow->SetWindowPos(NULL, owr.left, owr.top, owr.Width(), owr.Height()-pgr.Height(), SWP_NOACTIVATE|SWP_NOZORDER);
+  }
 
   // try to start decompressor
   m_decomp = StartDecompress(m_fsImage, m_fsImageSize);
@@ -794,7 +799,7 @@ void CRawrite32Dlg::OnWriteImage()
 
   for (;;) {
 
-    UpdateWriteProgress();
+    if (!m_usingVXD) UpdateWriteProgress();
 
     const BYTE *outData = NULL;
     DWORD outSize = 0;
@@ -899,8 +904,10 @@ void CRawrite32Dlg::OnWriteImage()
       if (!MapInputView()) break;
     }
   }
-  m_progress.ShowWindow(SW_HIDE);
-  ow->SetWindowPos(NULL, owr.left, owr.top, owr.Width(), owr.Height(), SWP_NOACTIVATE|SWP_NOZORDER);
+  if (!m_usingVXD) {
+    m_progress.ShowWindow(SW_HIDE);
+    ow->SetWindowPos(NULL, owr.left, owr.top, owr.Width(), owr.Height(), SWP_NOACTIVATE|SWP_NOZORDER);
+  }
   EnableDlgChildControls(true);
 
   if (m_decomp) {
