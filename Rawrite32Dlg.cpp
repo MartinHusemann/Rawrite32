@@ -790,6 +790,8 @@ void CRawrite32Dlg::OnWriteImage()
   // only if we decompress we need a worker thread
   if (m_decomp) {
     // ready to go, now invoke the background thread to run the decompression loop...
+    m_writerIdle = 0;
+    m_decompForcedExit = 0;
     m_decompOutputSpaceAvailable = CreateEvent(NULL, FALSE, TRUE, NULL);
     m_decompOutputAvailable = CreateEvent(NULL, FALSE, FALSE, NULL);
     m_decompOutputLen = 0;
@@ -1058,7 +1060,7 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
     if (OpenClipboard()) {
       EmptyClipboard();
       DWORD size = m_output.GetLength() + 1;
-      HANDLE hGlob = GlobalAlloc(GMEM_MOVEABLE, size);
+      HANDLE hGlob = GlobalAlloc(GMEM_MOVEABLE, size*sizeof(TCHAR));
       LPTSTR cnt = (LPTSTR)GlobalLock(hGlob);
       _tcscpy(cnt, m_output);
       GlobalUnlock(hGlob);
