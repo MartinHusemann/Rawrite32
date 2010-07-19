@@ -130,7 +130,7 @@ BEGIN
     IDP_ARE_YOU_SURE        "Are you sure you would like to write the loaded image to drive %s ?\r\nATTENTION: this will destroy all contents of the disk in that drive!"
     IDP_NO_DISK             "Could not access device!\r\nMake sure a medium is inserted and you have administrative privileges."
     IDP_WRITE_ERROR         "Error writing to disk!"
-    IDS_SUCCESS             "\r\n%s successfully written to disk."
+    IDS_SUCCESS             "\r\n%s successfully written to disk.\r\n%s hash of output data: %s"
     IDP_NO_VXD              "Internal error: could not connect to vwin32.vxd!"
 END
 

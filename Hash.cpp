@@ -303,3 +303,8 @@ void SelectHash(LPCTSTR hashName, bool activate)
 {
   theRegCache.SetHash(hashName, activate);
 }
+
+IGenericHash *GetFastHash()
+{
+  return new CHashMD5;
+}

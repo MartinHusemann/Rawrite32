@@ -49,3 +49,6 @@ bool HashIsSelected(LPCTSTR);
 
 // changes activation of a hash
 void SelectHash(LPCTSTR,bool);
+
+// get a nice, fast hash implementation
+IGenericHash *GetFastHash();

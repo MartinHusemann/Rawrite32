@@ -828,6 +828,7 @@ void CRawrite32Dlg::OnWriteImage()
     AfxBeginThread(dcompressionStarter, this);
   }
 
+  IGenericHash *outHash = GetFastHash();
   for (;;) {
 
     if (!m_usingVXD) UpdateWriteProgress();
@@ -904,6 +905,7 @@ void CRawrite32Dlg::OnWriteImage()
         success = false;
         break;
       }
+      outHash->AddData(outData, outSize);
       m_sectorOut += outSize / SECTOR_SIZE;
       m_sizeWritten += outSize;
 
@@ -914,6 +916,7 @@ void CRawrite32Dlg::OnWriteImage()
         DWORD written = 0;
         DWORD size = outSize;
         if (size > MAX_WRITE_CHUNK) size = MAX_WRITE_CHUNK;
+        outHash->AddData(outData, size);
 #ifndef NULL_OUTPUT
         if (!WriteFile(m_outputDevice, outData, size, &written, NULL) || written != size) {
           InterlockedExchange(&m_decompForcedExit, 1);
@@ -925,6 +928,7 @@ void CRawrite32Dlg::OnWriteImage()
 #else
         written = size;
 #endif
+        outData += written;
         m_sizeWritten += written;
         outSize -= written;
         UpdateWriteProgress();
@@ -976,11 +980,13 @@ void CRawrite32Dlg::OnWriteImage()
   }
 
   if (success) {
-    CString msg, len;
+    CString msg, len, hash;
+    outHash->HashResult(hash);
     FormatSize(m_sizeWritten, len);
-    msg.Format(IDS_SUCCESS, len);
+    msg.Format(IDS_SUCCESS, len, outHash->HashName(), hash);
     m_output += msg;
   }
+  outHash->Delete();
   ShowOutput();
 }
 
@@ -1168,6 +1174,7 @@ UINT __cdecl hashThreadWorker(void *token)
     InterlockedExchange(&hash->percDone, perc);
     SetEvent(hash->DataDone);
   }
+  SetEvent(hash->DataDone);
   return 0;
 }
 
@@ -1239,11 +1246,14 @@ void CRawrite32Dlg::CalcHashes(CString &out)
   }
   EnableDlgChildControls(true);
   // done, notify worker threads
+  handles.clear();
   for (size_t i = 0; i < hashes.size(); i++) {
     hashes[i].input = NULL;
     hashes[i].inputLen = 0;
+    handles.push_back(hashes[i].DataDone);
     SetEvent(hashes[i].DataAvailable);
   }
+  WaitAndPoll(handles, INFINITE);
   UnmapViewOfFile(m_fsImage); m_fsImage = NULL;
 
   // collect output
