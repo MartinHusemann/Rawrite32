@@ -160,6 +160,7 @@ BEGIN
     IDS_USE_VOLUMES         "Write to logical volumes"
     IDS_USE_PHYSDISKS       "Write to physical devices"
     IDS_UNKNOWN_PHYSDEV     "disk device"
+    IDP_CANT_UNMOUNT_VOLUME "Can not unmount volume %s\r\nPlease close all applications using this volume and try again."
 END
 
 #endif    // English (U.S.) resources

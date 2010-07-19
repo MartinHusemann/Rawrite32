@@ -47,6 +47,8 @@
 // #define HASH_BENCHMARK
 // log total hash time
 // #define HASH_TOTAL_TIME
+// do not write output, similar to writing to /dev/null on unix
+// #define NULL_OUTPUT
 
 // XXX - just blindly assume we write to a 512-bye sectored medium if using old (win9x) systems.
 #define SECTOR_SIZE   512 // this value is not used on WinNT based systems
@@ -649,13 +651,17 @@ void CRawrite32Dlg::OnNewImage()
   VerifyInput();
 }
 
-void CRawrite32Dlg::ShowError(DWORD err, UINT id)
+void CRawrite32Dlg::ShowError(DWORD err, UINT id, LPCTSTR arg)
 {
-  CString msg; msg.LoadString(id);
+  CString msg;
+  if (arg)
+    msg.Format(id, arg);
+  else
+    msg.LoadString(id);
   CString t; t.Format(_T("%s\r\nError code: %u"), msg, err);
   m_output += t;
   ShowOutput();
-  AfxMessageBox(id, MB_OK|MB_ICONERROR);
+  AfxMessageBox(msg, MB_OK|MB_ICONERROR, id);
 }
 
 void CRawrite32Dlg::ShowOutput()
@@ -724,13 +730,14 @@ void CRawrite32Dlg::OnWriteImage()
   if (!VerifyInput())
     return;
 
+  CString drive, msg, internalFileName;
+  DWORD ddIndex = 0;
+  DWORD driveIndex = 0;
+
   int ndx = m_drives.GetCurSel();
   if (ndx == CB_ERR) return;
-  DWORD ddIndex = m_drives.GetItemData(ndx);
+  ddIndex = m_drives.GetItemData(ndx);
   if (ddIndex >= m_driveData.size()) return;
-
-  DWORD driveIndex = 0;
-  CString drive, msg, internalFileName;
   m_drives.GetLBText(ndx, drive);
   internalFileName = m_driveData[ddIndex].internalFileName;
 
@@ -772,7 +779,7 @@ void CRawrite32Dlg::OnWriteImage()
         HANDLE h = CreateFile(vol, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
         if (h != INVALID_HANDLE_VALUE) {
           if (DeviceIoControl(h, FSCTL_DISMOUNT_VOLUME, NULL, 0, NULL, 0, &bytes, NULL) == 0) {
-            ShowError(GetLastError(), IDP_CANT_LOCK_DISK);
+            ShowError(GetLastError(), IDP_CANT_UNMOUNT_VOLUME, m_driveData[ddIndex].volumes[i]);
             CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
             return;
           }
@@ -907,6 +914,7 @@ void CRawrite32Dlg::OnWriteImage()
         DWORD written = 0;
         DWORD size = outSize;
         if (size > MAX_WRITE_CHUNK) size = MAX_WRITE_CHUNK;
+#ifndef NULL_OUTPUT
         if (!WriteFile(m_outputDevice, outData, size, &written, NULL) || written != size) {
           InterlockedExchange(&m_decompForcedExit, 1);
           SetEvent(m_decompOutputSpaceAvailable);
@@ -914,6 +922,9 @@ void CRawrite32Dlg::OnWriteImage()
           success = false;
           break;
         }
+#else
+        written = size;
+#endif
         m_sizeWritten += written;
         outSize -= written;
         UpdateWriteProgress();
@@ -1104,7 +1115,7 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
 
 bool CRawrite32Dlg::VerifyInput()
 {
-  bool retVal = FALSE;
+  bool retVal = false;
   BOOL valid = FALSE;
   bool showMsg = FALSE;
   CString dummy;
@@ -1119,7 +1130,7 @@ bool CRawrite32Dlg::VerifyInput()
   }
   if (!valid) m_sectorSkip = 0;
 
-  retVal = TRUE;
+  retVal = m_drives.GetCount() > 0;
 
 done:
   GetDlgItem(IDC_WRITE_DISK)->EnableWindow(retVal);

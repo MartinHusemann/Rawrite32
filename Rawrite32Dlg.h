@@ -115,7 +115,7 @@ protected:
   bool MapInputView();                // map the next block at the current input offset
   bool AdvanceMapOffset();            // advance the input offset, return false if past end of file
   void FormatSize(DWORD64, CString&, DWORD addFactor = 1); // format a human readable size from a value in bytes
-  void ShowError(DWORD err, UINT id);
+  void ShowError(DWORD err, UINT id, LPCTSTR = NULL);
   void ShowOutput();
   void UpdateWriteProgress();
   void EnableDlgChildControls(bool enable);

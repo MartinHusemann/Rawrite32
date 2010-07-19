@@ -45,6 +45,7 @@
 #define IDS_USE_PHYSDISKS               1021
 #define IDS_SIZE_KBYTE                  1022
 #define IDS_UNKNOWN_PHYSDEV             1023
+#define IDP_CANT_UNMOUNT_VOLUME         1024
 
 // Next default values for new objects
 // 
