@@ -734,6 +734,7 @@ void CRawrite32Dlg::OnWriteImage()
 
   bool success = true;
   DWORD secSize = 512;
+  m_sizeWritten = 0;
 #ifdef _M_IX86  // special case for legacy versions on arch=i386
   if (m_usingVXD) {
     // Windows 9x: can't write to devices, need DOS services via vwin32.vdx
