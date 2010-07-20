@@ -38,8 +38,8 @@ BEGIN
     LTEXT           "Program &messages:",IDC_STATIC,7,41,222,10
     EDITTEXT        IDC_OUTPUT,7,53,354,100,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
     CONTROL         "",IDC_PROGRESS,"msctls_progress32",NOT WS_VISIBLE | WS_BORDER | PBS_SMOOTH,7,140,354,13
-    LTEXT           "&Target drive:",IDC_STATIC,7,158,50,12
-    COMBOBOX        IDC_DRIVES,61,156,139,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Target:",IDC_STATIC,7,158,27,12
+    COMBOBOX        IDC_DRIVES,39,156,161,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Sector s&kip:",IDC_STATIC,210,158,47,12
     EDITTEXT        IDC_SECTOR_SKIP,262,156,56,12,ES_AUTOHSCROLL
     LTEXT           "x 512 Byte",IDC_STATIC,323,158,38,12
@@ -153,13 +153,17 @@ BEGIN
     IDP_DECOMP_ERROR        "Decompression error - image broken?"
     IDS_WRITE_PROGRESS      "%s input data processed,\r\n%s written to target disk"
     IDS_SIZE_BYTE           "Byte"
-    IDS_SIZE_KBYTE          "KByte"
     IDS_SIZE_MBYTE          "MByte"
     IDS_SIZE_GBYTE          "GByte"
     IDS_OPTIONS_HASHES      "Hash options..."
     IDS_USE_VOLUMES         "Write to logical volumes"
     IDS_USE_PHYSDISKS       "Write to physical devices"
+    IDS_SIZE_KBYTE          "KByte"
     IDS_UNKNOWN_PHYSDEV     "disk device"
+END
+
+STRINGTABLE 
+BEGIN
     IDP_CANT_UNMOUNT_VOLUME "Can not unmount volume %s\r\nPlease close all applications using this volume and try again."
 END
 
