@@ -684,12 +684,8 @@ UINT CRawrite32Dlg::BackgroundDecompressor()
       break;
 
     WaitForSingleObject(m_decompOutputSpaceAvailable, INFINITE);
-    if (m_decompForcedExit)
+    if (m_decompForcedExit || m_decomp->allDone())
       break;
-    if (m_decomp->allDone()) {
-      m_decompOutputLen = 0;
-      SetEvent(m_decompOutputAvailable);
-    }
     DWORD outBufSize = OUTPUT_BUF_SIZE/2;
     m_decomp->SetOutputSpace(m_outputBuffer + m_curDecompTarget*(OUTPUT_BUF_SIZE/2), outBufSize);
 
@@ -703,12 +699,8 @@ decompMore:
       outBufSize -= space-newSpace;
       m_decomp->LimitOutputSpace(newSpace);
     }
-
-    if (m_decomp->isError())  {
-      m_decompOutputLen = 0;
-      SetEvent(m_decompOutputAvailable);
+    if (m_decomp->isError())
       break;
-    }
     if (!m_decomp->allDone() && m_decomp->needInputData()) {
       UnmapViewOfFile(m_fsImage);
       if (AdvanceMapOffset() && MapInputView()) {
@@ -718,16 +710,15 @@ decompMore:
       }
     }
     if (m_decomp->outputSpace() == outBufSize) {
-      if (m_decomp->allDone()) {
-        m_decompOutputLen = 0;
-        SetEvent(m_decompOutputAvailable);
+      if (m_decomp->allDone())
         break;
-      }
       goto decompMore;
     }
     m_decompOutputLen = outBufSize - m_decomp->outputSpace();
     SetEvent(m_decompOutputAvailable);
   }
+  m_decompOutputLen = 0;
+  SetEvent(m_decompOutputAvailable);
   return 0;
 }
 
@@ -948,6 +939,12 @@ void CRawrite32Dlg::OnWriteImage()
       if (!AdvanceMapOffset()) break;
       if (!MapInputView()) break;
     }
+  }
+  if (m_decomp) {
+    // wait for decompression thread to exit
+    vector<HANDLE> handles;
+    handles.push_back(m_decompOutputAvailable);
+    WaitAndPoll(handles, INFINITE);
   }
   if (!m_usingVXD) {
     m_progress.ShowWindow(SW_HIDE);
