@@ -684,6 +684,8 @@ UINT CRawrite32Dlg::BackgroundDecompressor()
       break;
 
     WaitForSingleObject(m_decompOutputSpaceAvailable, INFINITE);
+    if (m_decompForcedExit)
+      break;
     if (m_decomp->allDone()) {
       m_decompOutputLen = 0;
       SetEvent(m_decompOutputAvailable);
