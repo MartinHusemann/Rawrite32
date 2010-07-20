@@ -940,7 +940,7 @@ void CRawrite32Dlg::OnWriteImage()
       if (!MapInputView()) break;
     }
   }
-  if (m_decomp) {
+  if (m_decomp && !success) {
     // wait for decompression thread to exit
     vector<HANDLE> handles;
     handles.push_back(m_decompOutputAvailable);
