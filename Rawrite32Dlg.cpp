@@ -680,14 +680,14 @@ UINT CRawrite32Dlg::dcompressionStarter(void *token)
 UINT CRawrite32Dlg::BackgroundDecompressor()
 {
   for (;;) {
-    if (m_decomp->allDone()) {
-      m_decompOutputLen = 0;
-      SetEvent(m_decompOutputAvailable);
-    }
     if (m_decompForcedExit)
       break;
 
     WaitForSingleObject(m_decompOutputSpaceAvailable, INFINITE);
+    if (m_decomp->allDone()) {
+      m_decompOutputLen = 0;
+      SetEvent(m_decompOutputAvailable);
+    }
     DWORD outBufSize = OUTPUT_BUF_SIZE/2;
     m_decomp->SetOutputSpace(m_outputBuffer + m_curDecompTarget*(OUTPUT_BUF_SIZE/2), outBufSize);
 
