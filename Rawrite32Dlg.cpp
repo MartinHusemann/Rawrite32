@@ -680,6 +680,10 @@ UINT CRawrite32Dlg::dcompressionStarter(void *token)
 UINT CRawrite32Dlg::BackgroundDecompressor()
 {
   for (;;) {
+    if (m_decomp->allDone()) {
+      m_decompOutputLen = 0;
+      SetEvent(m_decompOutputAvailable);
+    }
     if (m_decompForcedExit)
       break;
 
@@ -703,7 +707,7 @@ decompMore:
       SetEvent(m_decompOutputAvailable);
       break;
     }
-    if (m_decomp->needInputData()) {
+    if (!m_decomp->allDone() && m_decomp->needInputData()) {
       UnmapViewOfFile(m_fsImage);
       if (AdvanceMapOffset() && MapInputView()) {
         m_decomp->AddInputData(m_fsImage, m_fsImageSize);
