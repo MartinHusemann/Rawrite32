@@ -783,6 +783,7 @@ void CRawrite32Dlg::OnWriteImage()
           CloseHandle(h);
         }
       }
+      DeviceIoControl(m_outputDevice, FSCTL_ALLOW_EXTENDED_DASD_IO, NULL, 0, NULL, 0, &bytes, NULL);
     }
 
     DISK_GEOMETRY_EX diskInfo;
@@ -987,7 +988,7 @@ void CRawrite32Dlg::OnWriteImage()
     outHash->HashResult(hash);
     FormatSize(m_sizeWritten, len);
     msg.Format(IDS_SUCCESS, len, outHash->HashName(), hash);
-    m_output += msg;
+    m_output += msg += "\r\n\r\n";
   }
   outHash->Delete();
   ShowOutput();
