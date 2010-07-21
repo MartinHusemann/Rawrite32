@@ -1,4 +1,5 @@
-#include "version.h"
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 
 IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 235, 82
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
@@ -13,6 +14,20 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,43,61,66,14,WS_GROUP
     PUSHBUTTON      "Visit homepage",IDC_SURF_HOME,125,61,66,14
 END
+
+
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\Rawrite32.ico"
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,108 @@
+LANGUAGE LANG_GERMAN, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_RAWRITE32_DIALOG DIALOGEX 0, 0, 368, 200
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "NetBSD Bootmedien Erstellung"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "&Dateisystem Vorlage Datei:",IDC_STATIC,7,7,220,10
+    EDITTEXT        IDC_IMAGE_NAME,7,18,314,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&wählen...",IDC_BROWSE,324,18,37,14
+    LTEXT           "&Meldungen:",IDC_STATIC,7,41,222,10
+    EDITTEXT        IDC_OUTPUT,7,53,354,100,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
+    CONTROL         "",IDC_PROGRESS,"msctls_progress32",NOT WS_VISIBLE | WS_BORDER | 0x1,7,140,354,13
+    LTEXT           "&Ziel:",IDC_STATIC,7,158,27,12
+    COMBOBOX        IDC_DRIVES,39,156,161,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Startsektor:",IDC_STATIC,210,158,47,12
+    EDITTEXT        IDC_SECTOR_SKIP,262,156,56,12,ES_AUTOHSCROLL
+    LTEXT           "x 512 Byte",IDC_STATIC,323,158,38,12
+    PUSHBUTTON      "&Schreiben...",IDC_WRITE_DISK,69,179,66,14,WS_DISABLED
+    DEFPUSHBUTTON   "Ende",IDOK,151,179,66,14
+    PUSHBUTTON      "Hilfe",ID_HELP,233,179,66,14
+END
+
+IDD_HASH_OPTIONS DIALOGEX 0, 0, 215, 192
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Prüfsummen Optionen"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Rawrite32 berechnet Prüfsummen der Eingabedatei und zeigt sie vor dem Scheiben des Bootmediums. Die Ergebnisse werden auch in die Zwischenablage kopiert.",IDC_STATIC,7,7,201,26
+    LTEXT           "Sie können so die Unversehrtheit der downgeloadeten Datei prüfen, indem sie diese Werte mit den offiziellen Summen vergleichen. NetBSD benutzt (aus historischen Gründen) MD5 und (als sicheren Algorithmus) SHA512.",IDC_STATIC,7,33,201,34
+    LTEXT           "Mit einer modernen multi-Core CPU können alles Summen parallel berechnet werden, ohne das Gesamtergebnis zu verzögern. Auf älteren Maschinen können zusätzliche Prüfsummen viel Zeit kosten.",IDC_STATIC,7,69,201,33
+    LTEXT           "Zu berechnenden Prüfsummen:",IDC_STATIC,7,108,195,10
+    CONTROL         "",IDC_HASH_TYPE_LIST,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,120,201,46
+    DEFPUSHBUTTON   "OK",IDOK,49,171,50,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,115,171,50,14
+END
+
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 235, 82
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Über Rawrite32"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,21,20
+    LTEXT           VERSION_AS_SENTENCE,IDC_STATIC,40,19,188,8,
+                    SS_NOPREFIX
+    LTEXT           "Copyright © 2000-2003,2010 Martin Husemann.\r\nAlle Rechte vorbehalten.",
+                    IDC_STATIC,40,30,188,24
+    DEFPUSHBUTTON   "OK",IDOK,43,61,66,14,WS_GROUP
+    PUSHBUTTON      "zur Homepage",IDC_SURF_HOME,125,61,66,14
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "&Über Rawrite32..."
+    IDS_OPEN_IMAGE_FILTER   "(komprimierte) Dateisysteme (*.gz, *.bz2, *.fs)|*.gz;*.bz2;*.fs|Binärdateien (*.bin)|*.bin|Alle Dateien (*.*)|*.*||"
+    IDS_OPEN_IMAGE_TITLE    "Dateisystem-Vorlage öffnen"
+    IDS_MESSAGE_INPUT_HASHES "Dateisystem Vorlage-Datei %s (%s):"
+    IDP_ARE_YOU_SURE        "Wollen Sie die gewählte Dateisystem-Vorlage-Datei auf das gewählte Laufwerk %s schreiben?\r\nACHTUNG: Alle Daten auf diesem Laufwerk werden überschrieben!"
+    IDP_NO_DISK             "Zugriff auf das Laufwerk ist nicht möglich!\r\nBitte prüfen Sie, das ein Medium eingelegt ist und Sie über Administrator-Rechte verfügen."
+    IDP_WRITE_ERROR         "Fehler beim Schreiben!"
+    IDS_SUCCESS             "\r\n%s wurden erfolgreich geschrieben.\r\n%s Prüfsumme der Ausgabedaten: %s"
+    IDP_NO_VXD              "Interner Fehler: Keine Verbindung zu vwin32.vxd!"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_HOME_URL            "http://www.duskware.com/rawrite32"
+    IDS_START_HINT          "Wählen Sie eine Dateisystem-Vorlage-Datei (und optional ein Ziellaufwerk)."
+    IDP_BAD_SKIP            "Ungültiger Start-Sektor-Wert!"
+    IDS_HELP_URL            "help/Rawrite32.htm"
+    IDP_CANT_LOCK_DISK      "Konnte das Laufwerk nicht exklusiv reservieren!"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_CALCULATING_HASHES  "Prüfsummen werden berechnet..."
+END
+
+STRINGTABLE 
+BEGIN
+    IDP_DECOMP_ERROR        "Dekompressions-Fehler - ist die Dateisystem-Vorlage-Datei fehlerhaft?"
+    IDS_WRITE_PROGRESS      "%s gelesen,\r\n%s auf das Ziellaufwerk geschrieben"
+    IDS_SIZE_BYTE           "Byte"
+    IDS_SIZE_MBYTE          "MByte"
+    IDS_SIZE_GBYTE          "GByte"
+    IDS_OPTIONS_HASHES      "Prüfsummen Optionen..."
+    IDS_USE_VOLUMES         "Auf logische Partitionen schreiben"
+    IDS_USE_PHYSDISKS       "Auf physikalische Geräte schreiben"
+    IDS_SIZE_KBYTE          "KByte"
+    IDS_UNKNOWN_PHYSDEV     "Laufwerk"
+END
+
+STRINGTABLE 
+BEGIN
+    IDP_CANT_UNMOUNT_VOLUME "Konnte Partition %s nicht abmelden.\r\nBitte schliessen Sie alle anderen Anwendungen und versuchen Sie es erneut."
+END
