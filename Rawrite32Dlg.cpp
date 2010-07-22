@@ -53,6 +53,9 @@
 // XXX - just blindly assume we write to a 512-bye sectored medium if using old (win9x) systems.
 #define SECTOR_SIZE   512 // this value is not used on WinNT based systems
 
+// size of the important data at the start of a disk carrying partition info
+#define PARTITION_INFO_SIZE (16*1024)
+
 // size of the view into the input image
 #define MAP_VIEW_SIZE (16*1024*1024)
 
@@ -783,7 +786,11 @@ void CRawrite32Dlg::OnWriteImage()
           CloseHandle(h);
         }
       }
-      DeviceIoControl(m_outputDevice, FSCTL_ALLOW_EXTENDED_DASD_IO, NULL, 0, NULL, 0, &bytes, NULL);
+      memset(m_outputBuffer, 0, PARTITION_INFO_SIZE);
+      WriteFile(m_outputDevice, m_outputBuffer, PARTITION_INFO_SIZE, &bytes, NULL);
+      DeviceIoControl(m_outputDevice, IOCTL_DISK_UPDATE_PROPERTIES, NULL, 0, NULL, 0, &bytes, NULL);
+      CloseHandle(m_outputDevice);
+      m_outputDevice = CreateFile(internalFileName, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
     }
 
     DISK_GEOMETRY_EX diskInfo;
@@ -992,6 +999,7 @@ void CRawrite32Dlg::OnWriteImage()
   }
   outHash->Delete();
   ShowOutput();
+  FillDriveCombo();
 }
 
 void CRawrite32Dlg::EnableDlgChildControls(bool enable)
