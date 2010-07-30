@@ -358,6 +358,29 @@ void CRawrite32Dlg::EnumPhysicalDrives()
 {
   ASSERT(!m_usingVXD);
 
+  // find all "floppy" devices first...
+  TCHAR allDrives[32*4 + 10];
+  GetLogicalDriveStrings(sizeof allDrives/sizeof allDrives[0], allDrives);
+  LPCTSTR drive;
+  for (drive = allDrives; *drive; drive += _tcslen(drive)+1) {
+    DWORD type = GetDriveType(drive);
+    if (type != DRIVE_REMOVABLE) continue;
+    CString volName(drive, 2);
+    DriveSelectionEntry driveDesc;
+    driveDesc.volumes.push_back(volName);
+    driveDesc.driveNumber = ~0U;
+    driveDesc.internalFileName.Format(_T("\\\\.\\%s"), volName);
+
+    CString logName, fsName;
+    GetVolumeInformation(drive, logName.GetBuffer(200), 200, NULL, NULL, NULL, fsName.GetBuffer(200), 200);
+    logName.ReleaseBuffer(); fsName.ReleaseBuffer();
+    if (logName.IsEmpty())
+      driveDesc.deviceName = fsName;
+    else
+      driveDesc.deviceName = logName + ", " + fsName;
+    m_driveData.push_back(driveDesc);
+  }
+
   size_t errCnt = 0;
   for (DWORD i = 0; ; i++) {
     CString internalFileName;
@@ -411,14 +434,10 @@ void CRawrite32Dlg::EnumPhysicalDrives()
   }
 
   // find logical volumes on the physical drives
-  TCHAR allDrives[32*4 + 10];
-  GetLogicalDriveStrings(sizeof allDrives/sizeof allDrives[0], allDrives);
-
-  LPCTSTR drive;
   for (drive = allDrives; *drive; drive += _tcslen(drive)+1) {
     CString internalFileName, vol(drive,2);
     DWORD type = GetDriveType(drive);
-    if (type == DRIVE_CDROM || type == DRIVE_REMOTE || type == DRIVE_RAMDISK) continue;
+    if (type == DRIVE_REMOVABLE ||type == DRIVE_CDROM || type == DRIVE_REMOTE || type == DRIVE_RAMDISK) continue;
     internalFileName.Format(_T("\\\\.\\%s"), vol);
     HANDLE outputDevice = CreateFile(internalFileName, 0, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
     if (outputDevice != INVALID_HANDLE_VALUE) {
