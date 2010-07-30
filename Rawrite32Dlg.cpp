@@ -797,10 +797,12 @@ void CRawrite32Dlg::OnWriteImage()
         CString vol; vol.Format(_T("\\\\.\\%s"), m_driveData[ddIndex].volumes[i]);
         HANDLE h = CreateFile(vol, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
         if (h != INVALID_HANDLE_VALUE) {
-          if (DeviceIoControl(h, FSCTL_DISMOUNT_VOLUME, NULL, 0, NULL, 0, &bytes, NULL) == 0) {
-            ShowError(GetLastError(), IDP_CANT_UNMOUNT_VOLUME, m_driveData[ddIndex].volumes[i]);
-            CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
-            return;
+          if (DeviceIoControl(h, FSCTL_IS_VOLUME_MOUNTED, NULL, 0, NULL, 0, &bytes, NULL)) {
+            if (DeviceIoControl(h, FSCTL_DISMOUNT_VOLUME, NULL, 0, NULL, 0, &bytes, NULL) == 0) {
+              ShowError(GetLastError(), IDP_CANT_UNMOUNT_VOLUME, m_driveData[ddIndex].volumes[i]);
+              CloseHandle(m_outputDevice); m_outputDevice = INVALID_HANDLE_VALUE;
+              return;
+            }
           }
           CloseHandle(h);
         }
