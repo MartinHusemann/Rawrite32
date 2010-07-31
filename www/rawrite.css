@@ -35,3 +35,18 @@
   text-decoration: underline;
 }
 
+.downloadList {
+  margin-bottom: 3.5ex;
+}
+
+.downloadTag {
+  float:left; margin-bottom:2ex;
+}
+
+.downloadLink {
+  position:absolute; left:20em; float:left;
+}
+
+.downloadComment {
+ clear:both;
+}
