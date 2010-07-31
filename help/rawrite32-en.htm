@@ -1,0 +1,244 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <!--- for help: cut start
+   <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
+   <link rel="stylesheet" href="../rawrite.css" type="text/css">
+   <!--- for help: cut end --->
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>Rawrite32 Documentation</title>
+</head>
+<body>
+
+<!--- for help: insert start --->
+<table><tr>
+<td><img border="0" src="images/icon.png"></td>
+<td width="30px"></td>
+<p style="height:20px"></p>
+<td><h2>Rawrite32</h2>
+NetBSD disk/USB stick image tool for Win32</td>
+</tr></table>
+<!--- for help: insert start ---> --->
+
+  <!--- for help: cut start
+  <div class="topNavigation">
+      <table><tr><td>
+        <table><tr><td><img border="0" src="images/icon.png"/>
+	</td><td align="center">
+	     <b>Rawrite32</b><br>
+	     The <a href="http://www.netbsd.org">NetBSD</a><br>
+	     image writing tool
+	</td></tr></table>
+      </td>
+      <td width="30px"></td>
+      <td valign="bottom">
+        <a href="../index.html">Home</a> |
+        <span>&raquo;</span>
+        <a href="rawrite32-en.htm">Help</a> |
+        <a href="../license.html">License</a> |
+        <a href="../download.html">Download</a>
+        <br style="clear:both">
+      </td></tr></table>
+  </div>
+  <!--- for help: cut end --->
+
+<p>
+You may use this tool for preparing floppy disks or ZIP media to
+boot NetBSD from. It takes a file called "a filesystem image" (usually
+with a ".fs" suffix) or a compressed variant thereof (usually with ".fs.gz"
+suffix) and writes it to a removeable medium. This is similar to formating
+a disk with the "transfer system files" option checked.
+<p>This program has it's homepage at 
+<a href="http://www.duskware.com/rawrite32">http://www.duskware.com/rawrite32</a>,
+where you will also find it's full
+<a href="http://www.duskware.com/rawrite32/license.html">license terms</a>,
+and <a href="http://www.duskware.com/rawrite32/download.html">source code</a>.
+A short version of the license is reproduced <a href="#license">below</a>.
+<p>Details on howto invoke this utility and it's <a href="#cmdLine">command line options</a> are explained below.
+<a name="screen"></a>
+<p><hr>
+<table>
+<tr><td>
+<map name="FPMap0">
+<area shape="rect" coords="9,8,36,34" href="#mnuSystem" />
+<area shape="rect" coords="26,63,498,87" href="#edtFilename" />
+<area shape="rect" coords="501,63,557,87" href="#btnSelect" />
+<area shape="rect" coords="26,122,556,285" href="#edtOutput" />
+<area shape="rect" coords="73,288,317,311" href="#cmbTarget" />
+<area shape="rect" coords="325,286,557,310" href="#edtSector" />
+<area shape="rect" coords="118,325,218,348" href="#btnWriteToDisk" />
+<area shape="rect" coords="242,325,341,348" href="#btnExit" />
+<area shape="rect" coords="365,325,462,348" href="#btnHelp" />
+</map>
+<img SRC="images/Rawrite-before-write.png" border=0 usemap="#FPMap0">
+</td><td valign="top">
+<p>This is a typical screen while working with Rawrite32. Please click on the
+parts of the screen you would like documentation on.</p>
+<p><i>Please especially note the small <b>NetBSD</b> flag in the left top
+corner (the system menu)!</i></p>
+<p>
+The typical workflow is:<br>
+<ol>
+<li><a href="#btnSelect">Select</a> a disk image</li>
+<li>Verify <a href="#edtOutputHash">hash values</a></li>
+<li>Select <a href="#cmbTarget">target</a> device</li>
+<li><a href="#btnWriteToDisk">Write</a> image to device</li>
+</ol>
+For the latter item, note that you can select between writing to physical
+devices mode (the default), and writing to partitions (which is usefull for
+backup/restore purposes, but not in the context of creating NetBSD boot
+media).</p>
+<p>If you are using an ancient Win9x/Millenium version, you will
+only be able to write to floppy disks.
+</p>
+</td></tr>
+</table>
+<p><hr>
+<a name="mnuSystem"></a>
+<H2>System menu</H2>
+<table>
+<tr><td><img src="images/Rawrite-sysmenu.png"></td>
+<td valign="top">
+<p>The system menu (the only menu available) contains, besides the usual
+"about" box a dialog to select hash values calculated when opening image
+files, and the selection between physical device and logical partition
+target mode.</p>
+<p>
+Note that ancient windows versions not base on Windows NT do not offer a
+generic access method for USB sticks, so you are restricted to "partition"
+mode and floppy disk target drives.</p>
+<p>The hash options, by default, will fit your computers abilities, i.e.
+use the minimal usefull set on slower/single CPU machines, and calculate
+all available hashes on multi core machines, where additional hash values
+will not cause a noticable slowdown.</p>
+<p>See <a href="#hashOptions">Hash Options</a> for all the details.
+</td></tr>
+</table>
+<a NAME="hashOptions">
+<H2>Hash Options</H2>
+<table>
+<tr><td><img src="images/Rawrite-hashoptions.png"></td>
+<td valign="top">
+<p>Hash values are used to ensure the integrity of a downloaded file.</p>
+<p>Basically they are strong cryptogrphic check sums over the input file.
+If you compare the values calculated by Rawrite32 (and copied to the
+windows clipboard) with the values published by the publisher of the
+disk image you have downloaded, you should be able to spot any alterations
+(due to network problems or manual tampering on mirrors).</p>
+<p>There are several "approved" algorithms, and one (MD5) used for historical
+reasons but considered "not quite safe" nowadays. You need to select the hash
+algorithms you find published values for your image for - for the NetBSD
+case, the default selection will deliver all the values you might need.</p>
+<p>If the sum for a strong algorithm (like SHA512) matches, there is no
+need to compare all the weaker results too.</p>
+</td></tr>
+</table>
+<hr>
+<a NAME="btnSelect"></a>
+<H2>Select a file</H2>
+Opens a file browser dialog to select a file system image file. This is
+the typical way to enter a filename into the "Filename of image" edit
+box.
+<a name="edtFilename"></a>
+<H2>Filename of image</H2>
+The filename of the image to be written to disk. Rawrite32 accepts filesystem
+image files (suffix ".fs") and compressed filesystem images (suffix
+".fs.gz" or ".fs.bz2"). The utility doesn't verify the contents of the image (i.e. you
+can use this tool to write a word document on your boot disk if you like),
+but it displays the MD5 checksum of the file (and additionaly of the decompressed
+contents, if the file is compressed). These values are displayed in the output
+area and copie to the clipboard. These values are published with every release
+or snapshot of NetBSD boot media, so you can compare them and verify you got
+the original image.
+<hr>
+<a name="cmbTarget"></a>
+<H2>Target</H2>
+Select the removable media (or physical device) to write the image to.
+If you are using "logical volumes" mode, this combobox lists all available
+volumes; if using physical device mode, it lists all devices. Devices that
+carry the current windows installation system directory are not offered
+(i.e. you typically will not see the device with C:\ on it in this list).
+<br>
+Be very carefull when selecting a target, this program is able to kill all
+the contents on the selected drive/device. It will delete all previous
+contents, so you better double check the selection.
+<hr>
+<a name="edtSector"></a>
+<H2>Sector skip</H2>
+Normally left blank, use only when following exact instructions 
+telling you to enter some value here!<p>
+Some install media preparation process may involve copying multiple images to
+a media or leaving the first part of the media alone for other reasons (e.g.
+because it contains a partition table). This can be acomplished by entering the
+number of (512 Byte sized) sectors to skip at the start of the device here
+when writing the second (or later) parts of the contents.
+<hr>
+<a NAME="btnWriteToDisk"></a>
+<H2>Write to disk...</H2>
+Starts the transfer to disk/USB device. This button is disabled unless you have selected
+a valid drive to trasnfer to (any removable will do) and a valid image to
+copy there. It will be disabled on illegal sector offset inputs.
+<hr>
+<a name="btnExit"></a>
+<H2>Exit</H2>
+Quits the program. Same as pressing ESC.
+<hr>
+<a name="btnHelp"></a>
+<H2>Help</H2>
+Invokes this help page. Hitting F1 will do this also.
+<hr>
+<a name="edtOutput"></a>
+<H2>Program messages</H2>
+The program outputs messages describing state/progress here. You can not enter
+anything there, it is like a TV: just watch the show.
+<table>
+<tr><td><img src="images/Rawrite-during-write.png"></td>
+<td valign="top">
+<p>Progress during decompression/writing to target device
+is separated into input and output parts. Depending on the decompression
+and device writing speed, these values might get seriously out of sync.</p>
+<p>Since only the input size is deterministically known upfront, the
+progressbar only shows consumed input.</p>
+</td>
+</tr>
+</table>
+<a name="edtOutputHash"></a>
+<table>
+<tr><td><img src="images/Rawrite-writing-done.png"></td>
+<td valign="top"><p>After output completed successfully, a (single, quick) hash value over
+all the output data will be displayed. This is more of a debugging feature
+for Rawrite32; whenever you have verified the input hash values, it would
+be impossible for somebody else to move things around or otherwise temper
+with your data. Note that the output hash is not a verification pass on
+the media, the values are calculated before passing the data to the
+device - it is not read again.</p></td>
+</tr>
+</table>
+<hr>
+<a name="cmdLine"></a><H2>Invocation and Command Line Options</H2>
+Normally you invoke this program by double clicking on the EXE file in the
+windows explorer or on a link to it. You then use the "Select" button to
+open a browser dialog and select the file you would like to write to disk.
+<p>
+You can also select the file in the windows explorer and drag&amp;drop it
+onto the program.
+<p>
+Another option is to invoke the program from the command line, passing the
+file to write as it's parameter.
+<p>
+In any case, if there is only one removeable disk drive in the system (typically
+the floppy drive) the programm will imediately try to write the image file
+there - after prompting you, of course.
+<hr>
+<a name="license"></a>
+<H2>License</H2>
+Copyright © 2000-2003,2010 Martin Husemann &lt;<a href="mailto:martin@duskware.de">martin@duskware.de</a>&gt;.<br>
+All rights reserved.<p>
+Useage of this program is free. Use it at your own risk. See the full license for
+details.<p>
+If you would like to redistribute this program in any form, please see the
+full <a href="http://www.duskware.com/rawrite32/license.html">license</a>
+for details.
+</body>
+</html>
+
