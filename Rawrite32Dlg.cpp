@@ -484,6 +484,7 @@ void CRawrite32Dlg::EnumLogicalVolumes()
 
 void CRawrite32Dlg::FillDriveCombo()
 {
+  CWaitCursor hourglass;
   m_driveData.clear();
   if (m_writeTargetLogicalVolume)
     EnumLogicalVolumes();
