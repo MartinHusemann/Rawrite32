@@ -89,13 +89,19 @@ BOOL CRawrite32App::InitInstance()
 
 void CRawrite32App::WinHelpInternal(DWORD_PTR /*dwData*/, UINT /*nCmd = HELP_CONTEXT*/)
 {
-  CString url, relUrl;
+  CString url, fileName, relUrl;
   TCHAR path[MAX_PATH], *p;
   GetModuleFileName(NULL, path, MAX_PATH);
   p = _tcsrchr(path, '\\');
   if (p) *p = 0;
   relUrl.LoadString(IDS_HELP_URL);
-  url.Format(_T("file:///%s/%s"), path, relUrl);
+  fileName = CString(path) + "/" + relUrl;
+  if (GetFileAttributes(fileName) != INVALID_FILE_ATTRIBUTES) {
+    url.Format(_T("file:///%s"), fileName);
+  } else {
+    url.LoadString(IDS_HOME_URL);
+    url += "/" + relUrl;
+  }
   TRACE(_T("Help URL: %s\n"), url);
   ShellExecute(NULL, _T("open"), url, NULL, NULL, SW_SHOWNORMAL);
 }

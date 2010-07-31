@@ -79,7 +79,7 @@ BEGIN
     IDS_HOME_URL            "http://www.duskware.com/rawrite32"
     IDS_START_HINT          "Wählen Sie eine Dateisystem-Vorlage-Datei (und optional ein Ziellaufwerk)."
     IDP_BAD_SKIP            "Ungültiger Start-Sektor-Wert!"
-    IDS_HELP_URL            "help/Rawrite32.htm"
+    IDS_HELP_URL            "help/rawrite32-en.htm"
     IDP_CANT_LOCK_DISK      "Konnte das Laufwerk nicht exklusiv reservieren!"
 END
 
