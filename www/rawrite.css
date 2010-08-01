@@ -41,13 +41,31 @@
 }
 
 .downloadTag {
-  float:left; margin-bottom:2ex;
-  background: #c0c0c0;
+  float:left;
+  position: relative;
+  top: 1ex;
+  left: 4em;
 }
 
 .downloadLink {
-  position:absolute; left:20em; float:left;
-  background: #00a000;
+  float:left;
+  width: 200px;
+  height: 26px;
+  background-image:url(downloadbutton.png);
+  margin-bottom: 1ex;
+}
+
+.downloadLink a:link {
+  color: black;
+  text-decoration: none;
+  position: relative;
+  left: 2em;
+  top: 0.5ex;
+}
+
+.downloadLink a:hover {
+  color:red;
+  text-decoration: underline;
 }
 
 .downloadComment {
