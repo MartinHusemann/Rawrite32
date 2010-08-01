@@ -37,14 +37,17 @@
 
 .downloadList {
   margin-bottom: 3.5ex;
+  background: #a0;
 }
 
 .downloadTag {
   float:left; margin-bottom:2ex;
+  background: #c0c0c0;
 }
 
 .downloadLink {
   position:absolute; left:20em; float:left;
+  background: #00a000;
 }
 
 .downloadComment {
