@@ -55,7 +55,7 @@
   margin-bottom: 1ex;
 }
 
-.downloadLink a:link {
+.downloadLink a {
   color: black;
   text-decoration: none;
   position: relative;
