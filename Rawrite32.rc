@@ -101,8 +101,8 @@ END
 BEGIN
     "#include ""version.h""\r\n"
     "#include ""version.rc2""\r\n"
-    "#include ""lang\\de.rc2""\r\n"
-    "#include ""lang\\jp.rc2""\r\0"
+    "// #include ""lang\\de.rc2""\r\n"
+    "// #include ""lang\\jp.rc2""\r\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -171,8 +171,8 @@ END
 //
 #include "version.h"
 #include "version.rc2"
-#include "lang\de.rc2"
-#include "lang\jp.rc2"
+//#include "lang\de.rc2"
+//#include "lang\jp.rc2"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

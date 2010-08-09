@@ -27,6 +27,8 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\Rawrite32.ico"
+IDI_HELP                ICON                    "res\\help.ico"
+IDI_OPTIONS             ICON                    "res\\options.ico"
 
 
 #ifndef _MAC
