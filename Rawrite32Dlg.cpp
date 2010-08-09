@@ -214,14 +214,13 @@ void CRawrite32Dlg::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CRawrite32Dlg, CDialog)
   //{{AFX_MSG_MAP(CRawrite32Dlg)
-  ON_WM_SYSCOMMAND()
   ON_WM_PAINT()
   ON_WM_QUERYDRAGICON()
   ON_WM_DESTROY()
   ON_BN_CLICKED(IDC_BROWSE, OnBrowse)
   ON_EN_CHANGE(IDC_IMAGE_NAME, OnNewImage)
   ON_BN_CLICKED(IDC_WRITE_DISK, OnWriteImage)
-	ON_EN_CHANGE(IDC_SECTOR_SKIP, OnChangeSectorSkip)
+//	ON_EN_CHANGE(IDC_SECTOR_SKIP, OnChangeSectorSkip)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -541,34 +540,6 @@ BOOL CRawrite32Dlg::OnInitDialog()
                           FIXED_PITCH|FF_DONTCARE, NULL);
   GetDlgItem(IDC_OUTPUT)->SetFont(&m_outWinFont);
 
-  // Add "About..." menu item to system menu.
-
-  // IDM_ABOUTBOX must be in the system command range.
-  ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
-  ASSERT(IDM_ABOUTBOX < 0xF000);
-  ASSERT((IDM_OPTIONS_HASHES & 0xFFF0) == IDM_OPTIONS_HASHES);
-  ASSERT(IDM_OPTIONS_HASHES < 0xF000);
-
-  CMenu* pSysMenu = GetSystemMenu(FALSE);
-  if (pSysMenu != NULL)
-  {
-  	CString aboutMenu, optionsMenu;
-  	aboutMenu.LoadString(IDS_ABOUTBOX);
-    optionsMenu.LoadString(IDS_OPTIONS_HASHES);
-		pSysMenu->AppendMenu(MF_SEPARATOR);
-		pSysMenu->AppendMenu(MF_STRING, IDM_OPTIONS_HASHES, optionsMenu);
-    if (!m_usingVXD) {
-      pSysMenu->AppendMenu(MF_SEPARATOR);
-      CString logMenu, physMenu;
-      logMenu.LoadString(IDS_USE_VOLUMES);
-      physMenu.LoadString(IDS_USE_PHYSDISKS);
-      pSysMenu->AppendMenu(MF_STRING|(m_writeTargetLogicalVolume?0:MF_CHECKED), IDM_USE_PHYSDISK, physMenu); 
-      pSysMenu->AppendMenu(MF_STRING|(m_writeTargetLogicalVolume?MF_CHECKED:0), IDM_USE_VOLUMES, logMenu); 
-		  pSysMenu->AppendMenu(MF_SEPARATOR);
-    }
-		pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, aboutMenu);
-  }
-
   SetIcon(m_hIcon, TRUE);			// Set big icon
   SetIcon(m_hSmallIcon, FALSE);		// Set small icon
 
@@ -583,27 +554,6 @@ BOOL CRawrite32Dlg::OnInitDialog()
     GetDlgItem(IDC_IMAGE_NAME)->SetWindowText(m_imageName);
 
   return TRUE;  // return TRUE  unless you set the focus to a control
-}
-
-void CRawrite32Dlg::OnSysCommand(UINT nID, LPARAM lParam)
-{
-  if ((nID & 0xFFF0) == IDM_ABOUTBOX) {
-  	CAboutDlg dlgAbout;
-  	dlgAbout.DoModal();
-  } else if ((nID & 0xFFF0) == IDM_OPTIONS_HASHES) {
-    CHashOptionsDlg dlgOptions;
-    dlgOptions.DoModal();
-  } else if ((nID & 0xFFF0) == IDM_USE_PHYSDISK || (nID & 0xFFF0) == IDM_USE_VOLUMES) {
-    bool nval = (nID & 0xFFF0) == IDM_USE_VOLUMES;
-    if (nval == m_writeTargetLogicalVolume) return;
-    m_writeTargetLogicalVolume = nval;
-    CMenu* pSysMenu = GetSystemMenu(FALSE);
-    pSysMenu->CheckMenuItem(IDM_USE_PHYSDISK, MF_BYCOMMAND|(m_writeTargetLogicalVolume?0:MF_CHECKED));
-    pSysMenu->CheckMenuItem(IDM_USE_VOLUMES, MF_BYCOMMAND|(m_writeTargetLogicalVolume?MF_CHECKED:0));
-    FillDriveCombo();
-  } else {
-  	CDialog::OnSysCommand(nID, lParam);
-  }
 }
 
 // If you add a minimize button to your dialog, you will need the code below
@@ -1027,11 +977,10 @@ void CRawrite32Dlg::OnWriteImage()
 void CRawrite32Dlg::EnableDlgChildControls(bool enable)
 {
   GetDlgItem(IDC_WRITE_DISK)->EnableWindow(enable);
-  GetDlgItem(IDOK)->EnableWindow(enable);
   GetDlgItem(IDC_DRIVES)->EnableWindow(enable);
   GetDlgItem(IDC_BROWSE)->EnableWindow(enable);
   GetDlgItem(IDC_IMAGE_NAME)->EnableWindow(enable);
-  GetDlgItem(IDC_SECTOR_SKIP)->EnableWindow(enable);
+//  GetDlgItem(IDC_SECTOR_SKIP)->EnableWindow(enable);
 }
 
 void CRawrite32Dlg::UpdateWriteProgress()
@@ -1162,8 +1111,8 @@ bool CRawrite32Dlg::VerifyInput()
 
   if (m_inputMapping == NULL) goto done;
 
-  GetDlgItemText(IDC_SECTOR_SKIP, dummy);
-  m_sectorSkip = GetDlgItemInt(IDC_SECTOR_SKIP, &valid, FALSE);
+  //GetDlgItemText(IDC_SECTOR_SKIP, dummy);
+  //m_sectorSkip = GetDlgItemInt(IDC_SECTOR_SKIP, &valid, FALSE);
   if (!dummy.IsEmpty() && !valid) {
     showMsg = TRUE;
     goto done;

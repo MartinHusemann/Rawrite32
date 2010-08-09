@@ -2,10 +2,6 @@
 // Microsoft Visual C++ generated include file.
 // Used by Rawrite32.rc
 //
-#define IDM_ABOUTBOX                    0x0010
-#define IDM_OPTIONS_HASHES              0x0020
-#define IDM_USE_PHYSDISK                0x0030
-#define IDM_USE_VOLUMES                 0x0040
 #define IDD_ABOUTBOX                    100
 #define IDS_ABOUTBOX                    101
 #define IDD_RAWRITE32_DIALOG            102
@@ -24,6 +20,7 @@
 #define IDP_CANT_LOCK_DISK              116
 #define IDR_MAINFRAME                   128
 #define IDD_HASH_OPTIONS                129
+#define IDD_SEC_SKIP_OPTIONS            130
 #define IDC_WRITE_DISK                  1000
 #define IDC_IMAGE_NAME                  1001
 #define IDC_BROWSE                      1002
@@ -34,6 +31,8 @@
 #define IDS_CALCULATING_HASHES          1007
 #define IDC_HASH_TYPE_LIST              1008
 #define IDP_DECOMP_ERROR                1009
+#define IDC_HELP_ICON                   1010
+#define IDC_OPTIONS_ICON                1011
 #define IDC_PROGRESS                    1012
 #define IDS_WRITE_PROGRESS              1014
 #define IDS_SIZE_BYTE                   1016
@@ -52,9 +51,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        130
-#define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1009
-#define _APS_NEXT_SYMED_VALUE           101
+#define _APS_NEXT_RESOURCE_VALUE        1027
+#define _APS_NEXT_COMMAND_VALUE         1027
+#define _APS_NEXT_CONTROL_VALUE         1027
+#define _APS_NEXT_SYMED_VALUE           1027
 #endif
 #endif

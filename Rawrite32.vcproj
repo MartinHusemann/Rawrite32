@@ -472,5 +472,9 @@
 		</File>
 	</Files>
 	<Globals>
+		<Global
+			Name="RESOURCE_FILE"
+			Value="Rawrite32.rc"
+		/>
 	</Globals>
 </VisualStudioProject>
