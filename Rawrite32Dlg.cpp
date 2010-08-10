@@ -81,6 +81,14 @@ static bool RunningOnDOS()
 #endif
 
 /////////////////////////////////////////////////////////////////////////////
+static void DoSurfHome()
+{
+  CString url;
+  url.LoadString(IDS_HOME_URL);
+  ShellExecute(NULL, _T("open"), url, NULL, NULL, SW_SHOWNORMAL);
+}
+
+/////////////////////////////////////////////////////////////////////////////
 // CAboutDlg dialog used for App About
 class CAboutDlg : public CDialog
 {
@@ -102,10 +110,29 @@ END_MESSAGE_MAP()
 void CAboutDlg::OnSurfHome() 
 {
   OnOK();
+  DoSurfHome();
+}
 
-  CString url;
-  url.LoadString(IDS_HOME_URL);
-  ShellExecute(NULL, _T("open"), url, NULL, NULL, SW_SHOWNORMAL);
+/////////////////////////////////////////////////////////////////////////////
+// CSecSkipOptionsDlg dialog used for App About
+class CSecSkipOptionsDlg : public CDialog
+{
+public:
+  CSecSkipOptionsDlg() : CDialog(IDD) {}
+
+private:
+  enum { IDD = IDD_SEC_SKIP_OPTIONS };
+
+protected:
+  virtual void DoDataExchange(CDataExchange*pDX);
+
+public:
+  long m_sekCount;
+};
+
+void CSecSkipOptionsDlg::DoDataExchange(CDataExchange*pDX)
+{
+  DDX_Text(pDX, IDC_SECTOR_SKIP, m_sekCount);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -220,7 +247,12 @@ BEGIN_MESSAGE_MAP(CRawrite32Dlg, CDialog)
   ON_BN_CLICKED(IDC_BROWSE, OnBrowse)
   ON_EN_CHANGE(IDC_IMAGE_NAME, OnNewImage)
   ON_BN_CLICKED(IDC_WRITE_DISK, OnWriteImage)
-//	ON_EN_CHANGE(IDC_SECTOR_SKIP, OnChangeSectorSkip)
+  ON_COMMAND(IDD_ABOUTBOX, OnAboutDlg)
+  ON_COMMAND(IDC_SURF_HOME, OnSurfHome)
+  ON_COMMAND(IDD_HASH_OPTIONS, OnHashOptions)
+  ON_COMMAND(IDD_SEC_SKIP_OPTIONS, OnSecSkipOptions)
+  ON_COMMAND(IDM_USE_VOLUMES, OnUseVolumes)
+  ON_COMMAND(IDM_USE_PHYSDISKS, OnUsePhysDisks)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -529,6 +561,12 @@ void CRawrite32Dlg::FillDriveCombo()
   
   if (m_drives.GetCount() > 0)
     m_drives.SetCurSel(m_drives.GetCount()-1);
+
+  CMenu *menu = GetMenu();
+  if (menu) {
+    menu->CheckMenuItem(IDM_USE_VOLUMES, MF_BYCOMMAND | (m_writeTargetLogicalVolume ? MF_CHECKED : MF_UNCHECKED));
+    menu->CheckMenuItem(IDM_USE_PHYSDISKS, MF_BYCOMMAND | (m_writeTargetLogicalVolume ? MF_UNCHECKED : MF_CHECKED));
+  }
 }
 
 BOOL CRawrite32Dlg::OnInitDialog()
@@ -1128,9 +1166,43 @@ done:
   return retVal;
 }
 
-void CRawrite32Dlg::OnChangeSectorSkip() 
+void CRawrite32Dlg::OnUseVolumes()
 {
-  VerifyInput();
+  if (m_writeTargetLogicalVolume) return;
+  m_writeTargetLogicalVolume = true;
+  FillDriveCombo();
+}
+
+void CRawrite32Dlg::OnUsePhysDisks()
+{
+  if (!m_writeTargetLogicalVolume) return;
+  m_writeTargetLogicalVolume = false;
+  FillDriveCombo();
+}
+
+void CRawrite32Dlg::OnSecSkipOptions()
+{
+  CSecSkipOptionsDlg dlg;
+  dlg.m_sekCount = m_sectorSkip;
+  if (dlg.DoModal() == IDOK && dlg.m_sekCount >= 0) {
+    m_sectorSkip = dlg.m_sekCount;
+    VerifyInput();
+  }
+}
+
+void CRawrite32Dlg::OnAboutDlg()
+{
+  CAboutDlg().DoModal();
+}
+
+void CRawrite32Dlg::OnSurfHome()
+{
+  DoSurfHome();
+}
+
+void CRawrite32Dlg::OnHashOptions()
+{
+  CHashOptionsDlg().DoModal();
 }
 
 // We run all hashes in their own thread, to use as many cpus as available.

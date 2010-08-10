@@ -149,7 +149,12 @@ protected:
 	afx_msg void OnBrowse();
 	afx_msg void OnNewImage();
 	afx_msg void OnWriteImage();
-	afx_msg void OnChangeSectorSkip();
+  afx_msg void OnAboutDlg();
+  afx_msg void OnSurfHome();
+  afx_msg void OnHashOptions();
+  afx_msg void OnSecSkipOptions();
+  afx_msg void OnUseVolumes();
+  afx_msg void OnUsePhysDisks();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
   

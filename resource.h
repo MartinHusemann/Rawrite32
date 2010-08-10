@@ -39,8 +39,8 @@
 #define IDS_SIZE_MBYTE                  1017
 #define IDS_SIZE_GBYTE                  1018
 #define IDS_OPTIONS_HASHES              1019
-#define IDS_USE_VOLUMES                 1020
-#define IDS_USE_PHYSDISKS               1021
+#define IDM_USE_VOLUMES                 1020
+#define IDM_USE_PHYSDISKS               1021
 #define IDS_SIZE_KBYTE                  1022
 #define IDS_UNKNOWN_PHYSDEV             1023
 #define IDP_CANT_UNMOUNT_VOLUME         1024

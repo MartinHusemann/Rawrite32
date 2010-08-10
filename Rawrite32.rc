@@ -110,11 +110,23 @@ IDR_MAINFRAME MENU
 BEGIN
     POPUP "File"
     BEGIN
-        MENUITEM "Open",                    IDC_BROWSE
+        MENUITEM "Open...",                 IDC_BROWSE
         MENUITEM "Exit",                    IDOK
     END
-    MENUITEM "Options",                     0
-    MENUITEM "Help",                        0
+    POPUP "Options"
+    BEGIN
+      MENUITEM "Hash options...",           IDD_HASH_OPTIONS
+      MENUITEM "Sector skip...",            IDD_SEC_SKIP_OPTIONS
+      MENUITEM SEPARATOR
+      MENUITEM "Write to logical volumes",  IDM_USE_VOLUMES
+      MENUITEM "Write to physical devices", IDM_USE_PHYSDISKS
+    END
+    POPUP "Help"
+    BEGIN
+      MENUITEM "Documentation",             ID_HELP
+      MENUITEM "Homepage",                  IDC_SURF_HOME
+      MENUITEM "About Rawrite32...",        IDD_ABOUTBOX
+    END
 END
 
 /////////////////////////////////////////////////////////////////////////////
@@ -137,7 +149,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_HOME_URL            "http://www.duskware.com/rawrite32"
+    IDS_HOME_URL            "http://www.netbsd.org/~martin/rawrite32/index.html"
     IDS_START_HINT          "Select a filesystem image (and optional a target drive)."
     IDP_BAD_SKIP            "Illegal sector skip Value!"
     IDS_HELP_URL            "help/Rawrite32.htm"
@@ -156,9 +168,6 @@ BEGIN
     IDS_SIZE_BYTE           "Byte"
     IDS_SIZE_MBYTE          "MByte"
     IDS_SIZE_GBYTE          "GByte"
-    IDS_OPTIONS_HASHES      "Hash options..."
-    IDS_USE_VOLUMES         "Write to logical volumes"
-    IDS_USE_PHYSDISKS       "Write to physical devices"
     IDS_SIZE_KBYTE          "KByte"
     IDS_UNKNOWN_PHYSDEV     "disk device"
 END
