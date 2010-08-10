@@ -6,26 +6,24 @@ LANGUAGE LANG_GERMAN, SUBLANG_ENGLISH_US
 // Dialog
 //
 
-IDD_RAWRITE32_DIALOG DIALOGEX 0, 0, 368, 200
+IDD_RAWRITE32_DIALOG DIALOGEX 0, 0, 368, 173
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "NetBSD Bootmedien Erstellung"
+MENU IDR_MAINFRAME
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "&Dateisystem Vorlage Datei:",IDC_STATIC,7,7,220,10
-    EDITTEXT        IDC_IMAGE_NAME,7,18,314,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "&wählen...",IDC_BROWSE,324,18,37,14
-    LTEXT           "&Meldungen:",IDC_STATIC,7,41,222,10
-    EDITTEXT        IDC_OUTPUT,7,53,354,100,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
-    CONTROL         "",IDC_PROGRESS,"msctls_progress32",NOT WS_VISIBLE | WS_BORDER | 0x1,7,140,354,13
-    LTEXT           "&Ziel:",IDC_STATIC,7,158,27,12
-    COMBOBOX        IDC_DRIVES,39,156,161,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Startsektor:",IDC_STATIC,210,158,47,12
-    EDITTEXT        IDC_SECTOR_SKIP,262,156,56,12,ES_AUTOHSCROLL
-    LTEXT           "x 512 Byte",IDC_STATIC,323,158,38,12
-    PUSHBUTTON      "&Schreiben...",IDC_WRITE_DISK,69,179,66,14,WS_DISABLED
-    DEFPUSHBUTTON   "Ende",IDOK,151,179,66,14
-    PUSHBUTTON      "Hilfe",ID_HELP,233,179,66,14
+    EDITTEXT        IDC_IMAGE_NAME,7,18,243,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&wählen...",IDC_BROWSE,255,18,45,14
+    LTEXT           "&Meldungen:",IDC_STATIC,7,36,222,10
+    EDITTEXT        IDC_OUTPUT,7,48,354,100,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
+    CONTROL         "",IDC_PROGRESS,"msctls_progress32",NOT WS_VISIBLE | WS_BORDER | PBS_SMOOTH,7,135,354,13
+    LTEXT           "&Ziel:",IDC_STATIC,7,152,27,12
+    COMBOBOX        IDC_DRIVES,39,152,242,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Schreiben...",IDC_WRITE_DISK,284,151,77,14,WS_DISABLED
+    ICON            1025,IDC_HELP_ICON,337,12,21,20,SS_CENTERIMAGE | SS_REALSIZEIMAGE,WS_EX_TRANSPARENT
+    ICON            1026,IDC_OPTIONS_ICON,310,12,21,20
 END
 
 IDD_HASH_OPTIONS DIALOGEX 0, 0, 215, 192
@@ -42,6 +40,19 @@ BEGIN
     PUSHBUTTON      "Abbrechen",IDCANCEL,115,171,50,14
 END
 
+IDD_SEC_SKIP_OPTIONS DIALOGEX 0, 0, 231, 100
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Startsektor"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Für bestimmte Boot-Medien ist es wichtig, den Anfang des Mediums unangetastet zu lassen (also nicht durch die Daten aus der Image Datei zu überschreiben).",IDC_STATIC,7,7,217,34
+    LTEXT           "Startsektor:",IDC_STATIC,32,53,47,12
+    EDITTEXT        IDC_SECTOR_SKIP,84,53,56,12,ES_AUTOHSCROLL
+    LTEXT           "x 512 Byte",IDC_STATIC,145,53,38,12
+    DEFPUSHBUTTON   "OK",IDOK,57,79,50,14
+    PUSHBUTTON      "Abbrechen",IDCANCEL,119,79,50,14
+END
+
 IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 235, 82
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Über Rawrite32"
@@ -54,6 +65,34 @@ BEGIN
                     IDC_STATIC,40,30,188,24
     DEFPUSHBUTTON   "OK",IDOK,43,61,66,14,WS_GROUP
     PUSHBUTTON      "zur Homepage",IDC_SURF_HOME,125,61,66,14
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU 
+BEGIN
+    POPUP "Datei"
+    BEGIN
+        MENUITEM "Öffnen...",               IDC_BROWSE
+        MENUITEM "Beenden",                 IDOK
+    END
+    POPUP "Einstellungen"
+    BEGIN
+      MENUITEM "Prüfsummen...",             IDD_HASH_OPTIONS
+      MENUITEM "Startsektor...",            IDD_SEC_SKIP_OPTIONS
+      MENUITEM SEPARATOR
+      MENUITEM "Auf logische Partitionen schreiben", IDM_USE_VOLUMES
+      MENUITEM "Auf physikalische Geräte schreiben", IDM_USE_PHYSDISKS
+    END
+    POPUP "Hilfe"
+    BEGIN
+      MENUITEM "Dokumenation",              ID_HELP
+      MENUITEM "zur Homepage",              IDC_SURF_HOME
+      MENUITEM "Info über Rawrite32...",    IDD_ABOUTBOX
+    END
 END
 
 /////////////////////////////////////////////////////////////////////////////
@@ -76,7 +115,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_HOME_URL            "http://www.netbsd.org/~martin/rawrite32/index.html"
+    IDS_HOME_URL            "http://www.netbsd.org/~martin/rawrite32"
     IDS_START_HINT          "Wählen Sie eine Dateisystem-Vorlage-Datei (und optional ein Ziellaufwerk)."
     IDP_BAD_SKIP            "Ungültiger Start-Sektor-Wert!"
     IDS_HELP_URL            "help/rawrite32-en.htm"
@@ -95,9 +134,6 @@ BEGIN
     IDS_SIZE_BYTE           "Byte"
     IDS_SIZE_MBYTE          "MByte"
     IDS_SIZE_GBYTE          "GByte"
-    IDS_OPTIONS_HASHES      "Prüfsummen Optionen..."
-    IDS_USE_VOLUMES         "Auf logische Partitionen schreiben"
-    IDS_USE_PHYSDISKS       "Auf physikalische Geräte schreiben"
     IDS_SIZE_KBYTE          "KByte"
     IDS_UNKNOWN_PHYSDEV     "Laufwerk"
 END
