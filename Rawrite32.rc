@@ -24,7 +24,6 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 // Dialog
 //
-
 IDD_RAWRITE32_DIALOG DIALOGEX 0, 0, 368, 173
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
@@ -176,7 +175,6 @@ STRINGTABLE
 BEGIN
     IDP_CANT_UNMOUNT_VOLUME "Can not unmount volume %s\r\nPlease close all applications using this volume and try again."
 END
-
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -215,8 +213,8 @@ END
 BEGIN
     "#include ""version.h""\r\n"
     "#include ""version.rc2""\r\n"
-    "// #include ""lang\\de.rc2""\r\n"
-    "// #include ""lang\\jp.rc2""\r\0"
+    "#include ""lang\\de.rc2""\r\n"
+    "#include ""lang\\jp.rc2""\r\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -229,8 +227,8 @@ END
 //
 #include "version.h"
 #include "version.rc2"
-// #include "lang\de.rc2"
-// #include "lang\jp.rc2"
+#include "lang\de.rc2"
+#include "lang\jp.rc2"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
