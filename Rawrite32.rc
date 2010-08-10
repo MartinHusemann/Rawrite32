@@ -149,10 +149,10 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_HOME_URL            "http://www.netbsd.org/~martin/rawrite32/index.html"
+    IDS_HOME_URL            "http://www.netbsd.org/~martin/rawrite32"
     IDS_START_HINT          "Select a filesystem image (and optional a target drive)."
     IDP_BAD_SKIP            "Illegal sector skip Value!"
-    IDS_HELP_URL            "help/Rawrite32.htm"
+    IDS_HELP_URL            "help/rawrite32-en.htm"
     IDP_CANT_LOCK_DISK      "Can not lock drive for exclusive access!"
 END
 
