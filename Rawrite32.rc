@@ -175,6 +175,7 @@ STRINGTABLE
 BEGIN
     IDP_CANT_UNMOUNT_VOLUME "Can not unmount volume %s\r\nPlease close all applications using this volume and try again."
 END
+
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -214,6 +215,7 @@ BEGIN
     "#include ""version.h""\r\n"
     "#include ""version.rc2""\r\n"
     "#include ""lang\\de.rc2""\r\n"
+    "#include ""lang\\fr.rc2""\r\n"
     "#include ""lang\\jp.rc2""\r\0"
 END
 
@@ -228,6 +230,7 @@ END
 #include "version.h"
 #include "version.rc2"
 #include "lang\de.rc2"
+#include "lang\fr.rc2"
 #include "lang\jp.rc2"
 
 /////////////////////////////////////////////////////////////////////////////
