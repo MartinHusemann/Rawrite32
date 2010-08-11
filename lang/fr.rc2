@@ -1,0 +1,144 @@
+LANGUAGE LANG_FRENCH, SUBLANG_DEFAULT
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_RAWRITE32_DIALOG DIALOGEX 0, 0, 368, 173
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "Utilitaire d'écriture d'images disques de NetBSD"
+MENU IDR_MAINFRAME
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "&Image du système de fichiers :",IDC_STATIC,7,7,220,10
+    EDITTEXT        IDC_IMAGE_NAME,7,18,243,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Sélectionner...",IDC_BROWSE,255,18,45,14
+    LTEXT           "&Messages de l'application :",IDC_STATIC,7,36,222,10
+    EDITTEXT        IDC_OUTPUT,7,48,354,100,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
+    CONTROL         "",IDC_PROGRESS,"msctls_progress32",NOT WS_VISIBLE | WS_BORDER | PBS_SMOOTH,7,135,354,13
+    LTEXT           "&Cible:",IDC_STATIC,7,152,27,12
+    COMBOBOX        IDC_DRIVES,39,152,242,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Écrir&e sur le dique...",IDC_WRITE_DISK,284,151,77,14,WS_DISABLED
+    ICON            1025,IDC_HELP_ICON,337,12,21,20,SS_CENTERIMAGE | SS_REALSIZEIMAGE,WS_EX_TRANSPARENT
+    ICON            1026,IDC_OPTIONS_ICON,310,12,21,20
+END
+
+IDD_HASH_OPTIONS DIALOGEX 0, 0, 215, 192
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Options des empreintes"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Rawrite32 calcule des empreintes de l'image source et affiche leurs valeurs avant d'écrire l'image sur le disque.  Elles sont aussi placées dans le presse-papier.",IDC_STATIC,7,7,201,26
+    LTEXT           "Cela permet à l'utilisateur de vérifier l'intégrité des images téléchargées, en comparant les valeurs affichées à celles publiées.  Les versions récentes de NetBSD utilisent les algorithmes MD5 (pour des raisons historiques) et SHA512.",IDC_STATIC,7,33,201,34
+    LTEXT           "Un processeur multi-coeurs moderne peut facilement calculer des empreintes supplémentaires en tâche de fond sans ralentir l'ensemble du processus. Avec un ordinateur plus ancien, les calculs supplémentaires peuvent causer un ralentissement notable.",IDC_STATIC,7,69,201,33
+    LTEXT           "Empreintes à calculer :",IDC_STATIC,7,108,195,10
+    CONTROL         "",IDC_HASH_TYPE_LIST,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,120,201,46
+    DEFPUSHBUTTON   "OK",IDOK,49,171,50,14
+    PUSHBUTTON      "Annuler",IDCANCEL,115,171,50,14
+END
+
+IDD_SEC_SKIP_OPTIONS DIALOGEX 0, 0, 231, 100
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Saut de secteurs"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Certains media de d'amorçage requièrent que quelques secteurs au début du disque ne soient pas modifiés, et donc que les secteurs correspondants de l'image source soient sautés.",IDC_STATIC,7,7,217,34
+    LTEXT           "&Saut de secteurs :",IDC_STATIC,32,53,47,12
+    EDITTEXT        IDC_SECTOR_SKIP,84,53,56,12,ES_AUTOHSCROLL
+    LTEXT           "x 512 Octets",IDC_STATIC,145,53,38,12
+    DEFPUSHBUTTON   "OK",IDOK,57,79,50,14
+    PUSHBUTTON      "Annuler",IDCANCEL,119,79,50,14
+END
+
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 235, 82
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "À propos de Rawrite32"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,21,20
+    LTEXT           VERSION_AS_SENTENCE,IDC_STATIC,40,19,188,8,
+                    SS_NOPREFIX
+    LTEXT           "Copyright © 2000-2003,2010 Martin Husemann.\r\Tous droits réservés.",
+                    IDC_STATIC,40,30,188,24
+    DEFPUSHBUTTON   "OK",IDOK,43,61,66,14,WS_GROUP
+    PUSHBUTTON      "Visiter la page d'accueil",IDC_SURF_HOME,125,61,66,14
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU 
+BEGIN
+    POPUP "Fichier"
+    BEGIN
+        MENUITEM "Ouvrir...",                 IDC_BROWSE
+        MENUITEM "Quitter",                    IDOK
+    END
+    POPUP "Options"
+    BEGIN
+      MENUITEM "Empreintes...",           IDD_HASH_OPTIONS
+      MENUITEM "Saut de secteurs...",            IDD_SEC_SKIP_OPTIONS
+      MENUITEM SEPARATOR
+      MENUITEM "Écrire sur un volume logique",  IDM_USE_VOLUMES
+      MENUITEM "Écrire sur un lecteur physique", IDM_USE_PHYSDISKS
+    END
+    POPUP "Aide"
+    BEGIN
+      MENUITEM "Documentation",                   ID_HELP
+      MENUITEM "Page d'accueil",                  IDC_SURF_HOME
+      MENUITEM "À propos de Rawrite32...",        IDD_ABOUTBOX
+    END
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "&À propos de Rawrite32..."
+    IDS_OPEN_IMAGE_FILTER   "Images disques (compressées) (*.gz, *.bz2, *.fs)|*.gz;*.bz2;*.fs|Images binaires (*.bin)|*.bin|Tous fichiers (*.*)|*.*||"
+    IDS_OPEN_IMAGE_TITLE    "Ouvrir une image disque"
+    IDS_MESSAGE_INPUT_HASHES "Image disque %s (%s):"
+    IDP_ARE_YOU_SURE        "Êtes vous sûr de vouloir écrire l'image sur le lecteur %s ?\r\nATTENTION : le contenu du disque dans ce lecteur sera écrasé !"
+    IDP_NO_DISK             "Impossible d'accéder au lecteur !\r\nVérifiez qu'un medium est présent et que vous disposez des droits administrateur."
+    IDP_WRITE_ERROR         "Erreur lors de l'écriture sur le disque !"
+    IDS_SUCCESS             "\r\n%s écrits avec succès sur le disque.\r\nEmpreinte %s des données écrites : %s"
+    IDP_NO_VXD              "Erreur interne : impossible de se connecter à vwin32.vxd !"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_HOME_URL            "http://www.netbsd.org/~martin/rawrite32"
+    IDS_START_HINT          "Sélectionnez une image disque (et éventuellement un lecteur cible)."
+    IDP_BAD_SKIP            "Valeur de saut de secteurs incorrecte !"
+    IDS_HELP_URL            "help/rawrite32-fr.htm"
+    IDP_CANT_LOCK_DISK      "Impossible de réserver l'accès exclusif au disque!"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_CALCULATING_HASHES  "Calcul des empreintes en cours..."
+END
+
+STRINGTABLE 
+BEGIN
+    IDP_DECOMP_ERROR        "Erreur de décompression - image corrompue ?"
+    IDS_WRITE_PROGRESS      "%s de données traitées,\r\n%s écrits sur le disque cible"
+    IDS_SIZE_BYTE           "Octet"
+    IDS_SIZE_MBYTE          "Mo"
+    IDS_SIZE_GBYTE          "Go"
+    IDS_SIZE_KBYTE          "Ko"
+    IDS_UNKNOWN_PHYSDEV     "lecteur"
+END
+
+STRINGTABLE 
+BEGIN
+    IDP_CANT_UNMOUNT_VOLUME "Impossible de démonter le volume %s\r\nVeuillez fermer toutes les applications qui utilisent ce volume et recommencer."
+END
