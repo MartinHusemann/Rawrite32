@@ -222,18 +222,17 @@ void CMenuIcon::DrawItem(LPDRAWITEMSTRUCT lpdi)
   DrawIcon(lpdi->hDC, lpdi->rcItem.left, lpdi->rcItem.top, m_icon);
 }
 
-void CMenuIcon::OnLButtonDown(UINT /*flags*/, CPoint /*point*/)
+void CMenuIcon::OnLButtonDown(UINT /*flags*/, CPoint point)
 {
-  bool logVols = ((CRawrite32Dlg*)GetParent())->WriteToLogicalDrives();
   CMenu m; m.LoadMenu(IDR_MAINFRAME);
   CMenu *popup = m.GetSubMenu(m_index);
 
-  popup->CheckMenuItem(IDM_USE_VOLUMES, MF_BYCOMMAND | (logVols ? MF_CHECKED : MF_UNCHECKED));
-  popup->CheckMenuItem(IDM_USE_PHYSDISKS, MF_BYCOMMAND | (logVols ? MF_UNCHECKED : MF_CHECKED));
+  ((CRawrite32Dlg*)GetParent())->UpdateMenu(popup);
 
   CRect r;
   GetWindowRect(&r);
-  popup->TrackPopupMenu(TPM_RIGHTALIGN, r.right, r.bottom, GetParent());
+  ClientToScreen(&point);
+  popup->TrackPopupMenu(TPM_RIGHTALIGN, r.right, point.y, GetParent());
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -255,6 +254,7 @@ CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
 {
   m_hIcon = (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR);
   m_hSmallIcon = (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR);
+  m_mainMenu.LoadMenu(IDR_MAINFRAME);
   EnableAutomation();
   m_imageName = imageFileName;
   m_output.LoadString(IDS_START_HINT);
@@ -265,11 +265,6 @@ CRawrite32Dlg::~CRawrite32Dlg()
 {
   CloseInputFile();
   delete [] m_outputBuffer;
-}
-
-bool CRawrite32Dlg::WriteToLogicalDrives() const
-{
-  return m_writeTargetLogicalVolume;
 }
 
 void CRawrite32Dlg::DoDataExchange(CDataExchange* pDX)
@@ -287,6 +282,7 @@ BEGIN_MESSAGE_MAP(CRawrite32Dlg, CDialog)
   ON_WM_PAINT()
   ON_WM_QUERYDRAGICON()
   ON_WM_DESTROY()
+  ON_WM_EXITMENULOOP()
   ON_BN_CLICKED(IDC_BROWSE, OnBrowse)
   ON_EN_CHANGE(IDC_IMAGE_NAME, OnNewImage)
   ON_BN_CLICKED(IDC_WRITE_DISK, OnWriteImage)
@@ -605,7 +601,11 @@ void CRawrite32Dlg::FillDriveCombo()
   if (m_drives.GetCount() > 0)
     m_drives.SetCurSel(m_drives.GetCount()-1);
 
-  CMenu *menu = GetMenu();
+  UpdateMenu(GetMenu());
+}
+
+void CRawrite32Dlg::UpdateMenu(CMenu *menu)
+{
   if (menu) {
     menu->CheckMenuItem(IDM_USE_VOLUMES, MF_BYCOMMAND | (m_writeTargetLogicalVolume ? MF_CHECKED : MF_UNCHECKED));
     menu->CheckMenuItem(IDM_USE_PHYSDISKS, MF_BYCOMMAND | (m_writeTargetLogicalVolume ? MF_UNCHECKED : MF_CHECKED));
@@ -669,6 +669,28 @@ void CRawrite32Dlg::OnPaint()
   {
   	CDialog::OnPaint();
   }
+}
+
+BOOL CRawrite32Dlg::PreTranslateMessage(MSG *pMsg)
+{
+  // check for the UP transition of the ALT key as syskey (i.e. not after use as an accelerator)
+  // or F10 to popup the menu
+  if ((pMsg->message == WM_SYSKEYUP && (pMsg->wParam & 0x0ffff) == VK_MENU) ||
+      (pMsg->message == WM_SYSKEYDOWN && (pMsg->wParam & 0x0ffff) == VK_F10))  {
+    // only if currently there is no menu...
+    if (GetMenu() == NULL) {
+      SetMenu(&m_mainMenu);
+      return FALSE; // process this message further, this will make the app enter the menu loop
+    }
+  }
+  return CDialog::PreTranslateMessage(pMsg);
+}
+
+void CRawrite32Dlg::OnExitMenuLoop(BOOL isPopup)
+{
+  // if the main menu loop was terminated, hide the menu again
+  if (!isPopup) SetMenu(NULL);
+  CDialog::OnExitMenuLoop(isPopup);
 }
 
 HCURSOR CRawrite32Dlg::OnQueryDragIcon()

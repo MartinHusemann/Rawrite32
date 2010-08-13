@@ -63,13 +63,14 @@ public:
 	//}}AFX_VIRTUAL
 
 public:
-  bool WriteToLogicalDrives() const;
+  void UpdateMenu(CMenu*);
 
 // Implementation
 protected:
 	HICON m_hIcon;          // program icon
   HICON m_hSmallIcon;     // and a small variant of it
   CFont m_outWinFont;     // font used for the output window
+  CMenu m_mainMenu;       // our menu, usually hidden
 
   // dialog data
   CString m_imageName;    // file path of the input image
@@ -126,6 +127,8 @@ protected:
   void EnumPhysicalDrives();
   void EnumLogicalVolumes();
 
+  virtual BOOL PreTranslateMessage(MSG *pMsg);
+
 protected:
   // background decompression thread
   static UINT __cdecl dcompressionStarter(void *token);
@@ -148,6 +151,7 @@ protected:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
+  afx_msg void OnExitMenuLoop(BOOL);
 	afx_msg void OnDestroy();
 	afx_msg void OnBrowse();
 	afx_msg void OnNewImage();
