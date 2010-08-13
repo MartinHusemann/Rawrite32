@@ -739,7 +739,7 @@ void CRawrite32Dlg::ShowError(DWORD err, UINT id, LPCTSTR arg)
     msg.Format(id, arg);
   else
     msg.LoadString(id);
-  CString t; t.Format(_T("%s\r\nError code: %u"), msg, err);
+  CString t; t.Format(_T("%s\r\n[#%u]"), msg, err);
   m_output += t;
   ShowOutput();
   AfxMessageBox(msg, MB_OK|MB_ICONERROR, id);
