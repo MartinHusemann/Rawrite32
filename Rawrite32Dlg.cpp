@@ -436,6 +436,8 @@ void CRawrite32Dlg::EnumPhysicalDrives()
     DWORD type = GetDriveType(drive);
     if (type != DRIVE_REMOVABLE) continue;
     CString volName(drive, 2);
+    TCHAR d = volName[0];
+    if (d != 'a' && d != 'A' && d != 'b' && d != 'B') break;  // we are only interested in floppy drives here
     DriveSelectionEntry driveDesc;
     driveDesc.volumes.push_back(volName);
     driveDesc.driveNumber = ~0U;
