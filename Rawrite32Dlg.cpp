@@ -199,6 +199,44 @@ void CHashOptionsDlg::OnOK()
 }
 
 /////////////////////////////////////////////////////////////////////////////
+class CMenuIcon : public CButton
+{
+public:
+  CMenuIcon(UINT menuIndex, UINT icon) : m_index(menuIndex) { m_icon = AfxGetApp()->LoadIcon(icon); }
+protected:
+  virtual void PostNcDestroy() { delete this; }
+  virtual void DrawItem(LPDRAWITEMSTRUCT);
+  afx_msg void OnLButtonDown(UINT flags, CPoint point);
+  DECLARE_MESSAGE_MAP()
+protected:
+  HICON m_icon;
+  UINT m_index;
+};
+
+BEGIN_MESSAGE_MAP(CMenuIcon, CButton)
+  ON_WM_LBUTTONDOWN()
+END_MESSAGE_MAP()
+
+void CMenuIcon::DrawItem(LPDRAWITEMSTRUCT lpdi)
+{
+  DrawIcon(lpdi->hDC, lpdi->rcItem.left, lpdi->rcItem.top, m_icon);
+}
+
+void CMenuIcon::OnLButtonDown(UINT /*flags*/, CPoint /*point*/)
+{
+  bool logVols = ((CRawrite32Dlg*)GetParent())->WriteToLogicalDrives();
+  CMenu m; m.LoadMenu(IDR_MAINFRAME);
+  CMenu *popup = m.GetSubMenu(m_index);
+
+  popup->CheckMenuItem(IDM_USE_VOLUMES, MF_BYCOMMAND | (logVols ? MF_CHECKED : MF_UNCHECKED));
+  popup->CheckMenuItem(IDM_USE_PHYSDISKS, MF_BYCOMMAND | (logVols ? MF_UNCHECKED : MF_CHECKED));
+
+  CRect r;
+  GetWindowRect(&r);
+  popup->TrackPopupMenu(TPM_RIGHTALIGN, r.right, r.bottom, GetParent());
+}
+
+/////////////////////////////////////////////////////////////////////////////
 // CRawrite32Dlg dialog
 
 CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
@@ -227,6 +265,11 @@ CRawrite32Dlg::~CRawrite32Dlg()
 {
   CloseInputFile();
   delete [] m_outputBuffer;
+}
+
+bool CRawrite32Dlg::WriteToLogicalDrives() const
+{
+  return m_writeTargetLogicalVolume;
 }
 
 void CRawrite32Dlg::DoDataExchange(CDataExchange* pDX)
@@ -578,9 +621,14 @@ BOOL CRawrite32Dlg::OnInitDialog()
                           FIXED_PITCH|FF_DONTCARE, NULL);
   GetDlgItem(IDC_OUTPUT)->SetFont(&m_outWinFont);
 
-  SetIcon(m_hIcon, TRUE);			// Set big icon
+  SetIcon(m_hIcon, TRUE);			    // Set big icon
   SetIcon(m_hSmallIcon, FALSE);		// Set small icon
 
+  // two image buttons for drop down context menus
+  (new CMenuIcon(1, IDI_OPTIONS))->SubclassDlgItem(IDC_OPTIONS_ICON, this);
+  (new CMenuIcon(2, IDI_HELP))->SubclassDlgItem(IDC_HELP_ICON, this);
+
+  // register the dialog as file drop target
   IDropTarget *dt;
   GetIDispatch(FALSE)->QueryInterface(IID_IDropTarget, (void**)&dt);
   RegisterDragDrop(m_hWnd, dt);

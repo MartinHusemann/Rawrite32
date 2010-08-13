@@ -62,6 +62,9 @@ public:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 	//}}AFX_VIRTUAL
 
+public:
+  bool WriteToLogicalDrives() const;
+
 // Implementation
 protected:
 	HICON m_hIcon;          // program icon
