@@ -127,7 +127,9 @@ protected:
   void EnumPhysicalDrives();
   void EnumLogicalVolumes();
 
+  // support for hidden main menu
   virtual BOOL PreTranslateMessage(MSG *pMsg);
+  void ShowMainMenu(bool showIt);
 
 protected:
   // background decompression thread
@@ -142,6 +144,7 @@ protected:
   volatile LONG m_decompForcedExit;   // if != 0 the decompressor exits ASAP
   volatile LONG m_writerIdle;         // if != 0 the writer is waiting for more data
 
+  int m_origHeight;
   // device selection
   bool m_writeTargetLogicalVolume;    // if true, write to logical volumes (instead of physical disk devices)
 

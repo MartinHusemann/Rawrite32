@@ -615,6 +615,10 @@ BOOL CRawrite32Dlg::OnInitDialog()
 {
   CDialog::OnInitDialog();
 
+  CRect r;
+  GetWindowRect(&r);
+  m_origHeight = r.Height();
+
   m_outWinFont.CreateFont(-12, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET,
                           OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
                           FIXED_PITCH|FF_DONTCARE, NULL);
@@ -670,6 +674,23 @@ void CRawrite32Dlg::OnPaint()
   }
 }
 
+void CRawrite32Dlg::ShowMainMenu(bool showIt)
+{
+  int dy = GetSystemMetrics(SM_CYMENU);
+  CRect r;
+  GetWindowRect(&r);
+  int w = r.Width();
+  int h = r.Height();
+  if (showIt) {
+    SetMenu(&m_mainMenu);
+    h += dy;
+  } else {
+    SetMenu(NULL);
+    h = m_origHeight;
+  }
+  SetWindowPos(NULL, 0, 0, w, h, SWP_NOMOVE|SWP_NOZORDER);
+}
+
 BOOL CRawrite32Dlg::PreTranslateMessage(MSG *pMsg)
 {
   // check for the UP transition of the ALT key as syskey (i.e. not after use as an accelerator)
@@ -678,7 +699,7 @@ BOOL CRawrite32Dlg::PreTranslateMessage(MSG *pMsg)
       (pMsg->message == WM_SYSKEYDOWN && (pMsg->wParam & 0x0ffff) == VK_F10))  {
     // only if currently there is no menu...
     if (GetMenu() == NULL) {
-      SetMenu(&m_mainMenu);
+      ShowMainMenu(true);
       return FALSE; // process this message further, this will make the app enter the menu loop
     }
   }
@@ -688,7 +709,7 @@ BOOL CRawrite32Dlg::PreTranslateMessage(MSG *pMsg)
 void CRawrite32Dlg::OnExitMenuLoop(BOOL isPopup)
 {
   // if the main menu loop was terminated, hide the menu again
-  if (!isPopup) SetMenu(NULL);
+  if (!isPopup) ShowMainMenu(false);
   CDialog::OnExitMenuLoop(isPopup);
 }
 
