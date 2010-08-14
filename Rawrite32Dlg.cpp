@@ -202,7 +202,7 @@ void CHashOptionsDlg::OnOK()
 class CMenuIcon : public CButton
 {
 public:
-  CMenuIcon(UINT menuIndex, UINT icon) : m_index(menuIndex) { m_icon = AfxGetApp()->LoadIcon(icon); }
+  CMenuIcon(CMenu *popup, UINT icon) : m_menu(popup) { m_icon = AfxGetApp()->LoadIcon(icon); }
 protected:
   virtual void PostNcDestroy() { delete this; }
   virtual void DrawItem(LPDRAWITEMSTRUCT);
@@ -210,7 +210,7 @@ protected:
   DECLARE_MESSAGE_MAP()
 protected:
   HICON m_icon;
-  UINT m_index;
+  CMenu *m_menu;
 };
 
 BEGIN_MESSAGE_MAP(CMenuIcon, CButton)
@@ -224,15 +224,12 @@ void CMenuIcon::DrawItem(LPDRAWITEMSTRUCT lpdi)
 
 void CMenuIcon::OnLButtonDown(UINT /*flags*/, CPoint point)
 {
-  CMenu m; m.LoadMenu(IDR_MAINFRAME);
-  CMenu *popup = m.GetSubMenu(m_index);
-
-  ((CRawrite32Dlg*)GetParent())->UpdateMenu(popup);
+  ((CRawrite32Dlg*)GetParent())->UpdateMenu(m_menu);
 
   CRect r;
   GetWindowRect(&r);
   ClientToScreen(&point);
-  popup->TrackPopupMenu(TPM_RIGHTALIGN, r.right, point.y, GetParent());
+  m_menu->TrackPopupMenu(TPM_RIGHTALIGN, r.right, point.y, GetParent());
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -627,8 +624,8 @@ BOOL CRawrite32Dlg::OnInitDialog()
   SetIcon(m_hSmallIcon, FALSE);		// Set small icon
 
   // two image buttons for drop down context menus
-  (new CMenuIcon(1, IDI_OPTIONS))->SubclassDlgItem(IDC_OPTIONS_ICON, this);
-  (new CMenuIcon(2, IDI_HELP))->SubclassDlgItem(IDC_HELP_ICON, this);
+  (new CMenuIcon(m_mainMenu.GetSubMenu(1), IDI_OPTIONS))->SubclassDlgItem(IDC_OPTIONS_ICON, this);
+  (new CMenuIcon(m_mainMenu.GetSubMenu(2), IDI_HELP))->SubclassDlgItem(IDC_HELP_ICON, this);
 
   // register the dialog as file drop target
   IDropTarget *dt;
