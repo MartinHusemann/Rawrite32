@@ -49,10 +49,10 @@ with a ".fs" suffix) or a compressed variant thereof (usually with ".fs.gz"
 suffix) and writes it to a removeable medium. This is similar to formating
 a disk with the "transfer system files" option checked.
 <p>This program has it's homepage at 
-<a href="http://www.duskware.com/rawrite32">http://www.duskware.com/rawrite32</a>,
+<a href="http://www.netbsd.org/~martin/rawrite32/">http://www.netbsd.org/~martin/rawrite32/</a>,
 where you will also find it's full
-<a href="http://www.duskware.com/rawrite32/license.html">license terms</a>,
-and <a href="http://www.duskware.com/rawrite32/download.html">source code</a>.
+<a href="http://www.netbsd.org/~martin/rawrite32/license.html">license terms</a>,
+and <a href="http://www.netbsd.org/~martin/rawrite32/download.html">source code</a>.
 A short version of the license is reproduced <a href="#license">below</a>.
 <p>Details on howto invoke this utility and it's <a href="#cmdLine">command line options</a> are explained below.
 <a name="screen"></a>
@@ -60,7 +60,7 @@ A short version of the license is reproduced <a href="#license">below</a>.
 <table>
 <tr><td>
 <map name="FPMap0">
-<area shape="rect" coords="9,32,563,54" alt="The Main menu" title="The Main menu" href="#mnuMai" />
+<area shape="rect" coords="9,32,563,54" alt="The Main menu" title="The Main menu" href="#mnuMain" />
 <area shape="rect" coords="21,82,388,108" alt="Input file name" title="Input file name" href="#edtFilename" />
 <area shape="rect" coords="393,82,464,108" alt="Browse for input file" title="Browse for input file" href="#btnSelect" />
 <area shape="rect" coords="22,133,555,298" alt="Program output messages" title="Program output messages" href="#edtOutput" />
@@ -73,8 +73,8 @@ A short version of the license is reproduced <a href="#license">below</a>.
 </td><td valign="top">
 <p>This is a typical screen while working with Rawrite32. Please click on the
 parts of the screen you would like documentation on.</p>
-<p><i>Please especially note the small <b>NetBSD</b> flag in the left top
-corner (the system menu)!</i></p>
+<p><i>Please note that the main menu will be hidden in normal operation,
+you can make it visible by typing <b>ALT</b> or <b>F10</b>.</i></p>
 <p>
 The typical workflow is:<br>
 <ol>
@@ -93,8 +93,8 @@ only be able to write to floppy disks.
 </td></tr>
 </table>
 <p><hr>
-<a name="mnuSystem"></a>
-<H2>System menu</H2>
+<a name="mnuMain"></a>
+<H2>Main Menu</H2>
 <table>
 <tr><td><img src="images/Rawrite-sysmenu.png" alt="Menu"></td>
 <td valign="top">
@@ -103,7 +103,7 @@ only be able to write to floppy disks.
 files, and the selection between physical device and logical partition
 target mode.</p>
 <p>
-Note that ancient windows versions not base on Windows NT do not offer a
+Note that ancient windows versions not based on Windows NT do not offer a
 generic access method for USB sticks, so you are restricted to "partition"
 mode and floppy disk target drives.</p>
 <p>The hash options, by default, will fit your computers abilities, i.e.
@@ -231,7 +231,9 @@ there - after prompting you, of course.
 <hr>
 <a name="license"></a>
 <H2>License</H2>
-Copyright © 2000-2003,2010 Martin Husemann &lt;<a href="mailto:martin@duskware.de">martin@duskware.de</a>&gt;.<br>
+<p>Copyright © 2000-2003,2010 Martin Husemann &lt;<a href="mailto:martin@NetBSD.org">martin@NetBSD.org</a>&gt;.<br>
+Copyright © 2010 Izumi Tsutsui &lt;<a href="mailto:tsutsui@NetBSD.org">tsutsui@NetBSD.org</a>&gt;.<br>
+>Copyright © 2010 Quentin Garnier &lt;<a href="mailto:cube@NetBSD.org">cube@NetBSD.org</a>&gt;.<br>
 All rights reserved.<p>
 Useage of this program is free. Use it at your own risk. See the full license for
 details.<p>
