@@ -60,14 +60,14 @@ A short version of the license is reproduced <a href="#license">below</a>.
 <table>
 <tr><td>
 <map name="FPMap0">
-<area shape="rect" coords="9,32,563,54" alt="The Main menu" title="The Main menu" href="#mnuMain" />
-<area shape="rect" coords="21,82,388,108" alt="Input file name" title="Input file name" href="#edtFilename" />
-<area shape="rect" coords="393,82,464,108" alt="Browse for input file" title="Browse for input file" href="#btnSelect" />
-<area shape="rect" coords="22,133,555,298" alt="Program output messages" title="Program output messages" href="#edtOutput" />
-<area shape="rect" coords="474,74,510,109" alt="Settings/options menu" title="Settings/options menu" href="#mnuSettings" />
-<area shape="rect" coords="511,75,550,108" alt="Help menu" title="Help menu" href="#mnuHelp" />
-<area shape="rect" coords="23,300,435,324" alt="Target drive selection" title="Target drive selection" href="#cmbTarget" />
-<area shape="rect" coords="436,300,552,324" alt="Start writing!" title="Start writing!" href="#btnWriteToDisk" />
+<area shape="rect" coords="9,32,563,54" alt="The Main menu" title="The Main menu" href="#mnuMain" >
+<area shape="rect" coords="21,82,388,108" alt="Input file name" title="Input file name" href="#edtFilename" >
+<area shape="rect" coords="393,82,464,108" alt="Browse for input file" title="Browse for input file" href="#btnSelect" >
+<area shape="rect" coords="22,133,555,298" alt="Program output messages" title="Program output messages" href="#edtOutput" >
+<area shape="rect" coords="474,74,510,109" alt="Settings/options menu" title="Settings/options menu" href="#mnuSettings" >
+<area shape="rect" coords="511,75,550,108" alt="Help menu" title="Help menu" href="#mnuHelp" >
+<area shape="rect" coords="23,300,435,324" alt="Target drive selection" title="Target drive selection" href="#cmbTarget" >
+<area shape="rect" coords="436,300,552,324" alt="Start writing!" title="Start writing!" href="#btnWriteToDisk" >
 </map>
 <img SRC="images/Rawrite-before-write.png" border=0 usemap="#FPMap0" alt="Screen">
 </td><td valign="top">
@@ -102,7 +102,7 @@ especially the <a href="#mnuSettings">settings</a> icon and the
 <a name="mnuSettings"></a>
 <hr>
 <h2>Settings Menu</h2>
-<img src="images/Rawrite-settings-menu.png">
+<img src="images/Rawrite-settings-menu.png" alt="Settings menu">
 <p><a href="#hashoptions">Hash options</a> shows a dialog to select hash
 values calculated when opening image
 files, and the selection between physical device and logical partition
@@ -121,13 +121,14 @@ that creates two partitions, e.g. a FAT partition and a NetBSD ffs file
 system. To create bootable media, you will typically need to use this
 mode.
 </ul>
+<p>
 Note that ancient windows versions not based on Windows NT do not offer a
 generic access method for USB sticks, so you are restricted to logical
-volumes mode, and floppy disks as target drives.</p>
+volumes mode, and floppy disks as target drives.
 <a name="mnuHelp"></a>
 <hr>
 <h2>Help Menu</h2>
-<img src="images/Rawrite-help-menu.png">
+<img src="images/Rawrite-help-menu.png" alt="The help menu">
 <p>
 This menu contains references to this help, the official web site, and,
 most important, the "about" box.
@@ -187,7 +188,7 @@ contents, so you better double check the selection.
 <hr>
 <a name="edtSector"></a>
 <H2>Sector skip</H2>
-<img src="images/Rawrite-skip-options.png">
+<img src="images/Rawrite-skip-options.png" alt="The sector skip options dialog">
 <p>Normally left blank, use only when following exact instructions 
 telling you to enter some value here!<p>
 Some install media preparation process may involve copying multiple images to
