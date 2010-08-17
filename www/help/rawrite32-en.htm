@@ -103,24 +103,35 @@ especially the <a href="#mnuSettings">settings</a> icon and the
 <hr>
 <h2>Settings Menu</h2>
 <img src="images/Rawrite-settings-menu.png">
-<p>a dialog to select hash values calculated when opening image
+<p><a href="#hashoptions">Hash options</a> shows a dialog to select hash
+values calculated when opening image
 files, and the selection between physical device and logical partition
 target mode.</p>
-<p>
+<p><a href="#edtSector">Sector skip</a> shows a dialog to select the
+first sector written to the medium, or in other words: how many sectors
+to skip at the start.
+<p>Right in this menu you can select the target device mode:</p>
+<ul>
+<li>Writing to logical volumes (typically recognizable by the assigned
+"drive letters") allows writing to floppy disks or parts of disk
+devices that have been created by partitioning disks into slices.</li>
+<li>Writing to physical devices overwrites any partitioning information
+present on the device, so it is possible to write an image to a usb stick
+that creates two partitions, e.g. a FAT partition and a NetBSD ffs file
+system. To create bootable media, you will typically need to use this
+mode.
+</ul>
 Note that ancient windows versions not based on Windows NT do not offer a
-generic access method for USB sticks, so you are restricted to "partition"
-mode and floppy disk target drives.</p>
-<p>The hash options, by default, will fit your computers abilities, i.e.
-use the minimal usefull set on slower/single CPU machines, and calculate
-all available hashes on multi core machines, where additional hash values
-will not cause a noticable slowdown.</p>
-<p>See <a href="#hashOptions">Hash Options</a> for all the details.
+generic access method for USB sticks, so you are restricted to logical
+volumes mode, and floppy disks as target drives.</p>
 <a name="mnuHelp"></a>
 <hr>
 <h2>Help Menu</h2>
 <img src="images/Rawrite-help-menu.png">
+<p>
 This menu contains references to this help, the official web site, and,
 most important, the "about" box.
+<hr>
 <a NAME="hashOptions"></a>
 <H2>Hash Options</H2>
 <table>
@@ -138,6 +149,10 @@ algorithms you find published values for your image for - for the NetBSD
 case, the default selection will deliver all the values you might need.</p>
 <p>If the sum for a strong algorithm (like SHA512) matches, there is no
 need to compare all the weaker results too.</p>
+<p>The hash options, by default, will fit your computers abilities, i.e.
+use the minimal usefull set on slower/single CPU machines, and calculate
+all available hashes on multi core machines, where additional hash values
+will not cause a noticable slowdown.</p>
 </td></tr>
 </table>
 <hr>
@@ -173,7 +188,7 @@ contents, so you better double check the selection.
 <a name="edtSector"></a>
 <H2>Sector skip</H2>
 <img src="images/Rawrite-skip-options.png">
-Normally left blank, use only when following exact instructions 
+<p>Normally left blank, use only when following exact instructions 
 telling you to enter some value here!<p>
 Some install media preparation process may involve copying multiple images to
 a media or leaving the first part of the media alone for other reasons (e.g.
@@ -184,8 +199,13 @@ when writing the second (or later) parts of the contents.
 <a NAME="btnWriteToDisk"></a>
 <H2>Write to disk...</H2>
 Starts the transfer to disk/USB device. This button is disabled unless you have selected
-a valid drive to trasnfer to (any removable will do) and a valid image to
+a valid drive to transfer to (any removable will do) and a valid image to
 copy there. It will be disabled on illegal sector offset inputs.
+<p>
+If your intended target device is not listed here, check the target device
+mode in the <a href="#mnuSettings">settings menu</a>. If you added the
+USB device after starting Rawrite32 it might not yet be listed - just quit
+and restart the program, after Windows tells you the device would be usable.
 <hr>
 <a name="edtOutput"></a>
 <H2>Program messages</H2>
