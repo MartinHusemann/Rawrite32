@@ -81,9 +81,11 @@ Section ${PRODUCT_NAME}
   File "www\help\images\icon.png"
   File "www\help\images\Rawrite-before-write.png"
   File "www\help\images\Rawrite-during-write.png"
-  File "www\help\images\Rawrite-hashoptions.png"
-  File "www\help\images\Rawrite-sysmenu.png"
   File "www\help\images\Rawrite-writing-done.png"
+  File "www\help\images\Rawrite-hashoptions.png"
+  File "www\help\images\Rawrite-help-menu.png"
+  File "www\help\images\Rawrite-settings-menu.png"
+  File "www\help\images\Rawrite-skip-options.png"
 
   ;------------------------------
   ;Registry stuff
