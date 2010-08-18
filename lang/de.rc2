@@ -12,9 +12,9 @@ EXSTYLE WS_EX_APPWINDOW
 CAPTION "NetBSD Bootmedien Erstellung"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
-    LTEXT           "&Dateisystem Vorlage Datei:",IDC_STATIC,7,7,220,10
+    LTEXT           "&Quelldatei:",IDC_STATIC,7,7,220,10
     EDITTEXT        IDC_IMAGE_NAME,7,18,243,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "&wählen...",IDC_BROWSE,255,18,45,14
+    PUSHBUTTON      "&öffnen...",IDC_BROWSE,255,18,45,14
     LTEXT           "&Meldungen:",IDC_STATIC,7,36,222,10
     EDITTEXT        IDC_OUTPUT,7,48,354,100,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
     CONTROL         "",IDC_PROGRESS,"msctls_progress32",NOT WS_VISIBLE | WS_BORDER | PBS_SMOOTH,7,135,354,13
@@ -103,9 +103,9 @@ STRINGTABLE
 BEGIN
     IDS_ABOUTBOX            "&Über Rawrite32..."
     IDS_OPEN_IMAGE_FILTER   "(komprimierte) Dateisysteme (*.gz, *.bz2, *.fs)|*.gz;*.bz2;*.fs|Binärdateien (*.bin)|*.bin|Alle Dateien (*.*)|*.*||"
-    IDS_OPEN_IMAGE_TITLE    "Dateisystem-Vorlage öffnen"
-    IDS_MESSAGE_INPUT_HASHES "Dateisystem Vorlage-Datei %s (%s):"
-    IDP_ARE_YOU_SURE        "Wollen Sie die gewählte Dateisystem-Vorlage-Datei auf das gewählte Laufwerk %s schreiben?\r\nACHTUNG: Alle Daten auf diesem Laufwerk werden überschrieben!"
+    IDS_OPEN_IMAGE_TITLE    "Quelldatei öffnen"
+    IDS_MESSAGE_INPUT_HASHES "Quelldatei %s (%s):"
+    IDP_ARE_YOU_SURE        "Wollen Sie die gewählte Quelldatei auf das gewählte Laufwerk %s schreiben?\r\nACHTUNG: Alle Daten auf diesem Laufwerk werden überschrieben!"
     IDP_NO_DISK             "Zugriff auf das Laufwerk ist nicht möglich!\r\nBitte prüfen Sie, das ein Medium eingelegt ist und Sie über Administrator-Rechte verfügen."
     IDP_WRITE_ERROR         "Fehler beim Schreiben!"
     IDS_SUCCESS             "\r\n%s wurden erfolgreich geschrieben.\r\n%s Prüfsumme der Ausgabedaten: %s"
@@ -115,7 +115,7 @@ END
 STRINGTABLE 
 BEGIN
     IDS_HOME_URL            "http://www.netbsd.org/~martin/rawrite32"
-    IDS_START_HINT          "Wählen Sie eine Dateisystem-Vorlage-Datei (und optional ein Ziellaufwerk)."
+    IDS_START_HINT          "Wählen Sie eine Quelldatei (und optional ein Ziellaufwerk)."
     IDP_BAD_SKIP            "Ungültiger Start-Sektor-Wert!"
     IDS_HELP_URL            "help/rawrite32-en.htm"
     IDP_CANT_LOCK_DISK      "Konnte das Laufwerk nicht exklusiv reservieren!"
@@ -128,7 +128,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDP_DECOMP_ERROR        "Dekompressions-Fehler - ist die Dateisystem-Vorlage-Datei fehlerhaft?"
+    IDP_DECOMP_ERROR        "Dekompressions-Fehler - ist die Quelldatei fehlerhaft?"
     IDS_WRITE_PROGRESS      "%s gelesen,\r\n%s auf das Ziellaufwerk geschrieben"
     IDS_SIZE_BYTE           "Byte"
     IDS_SIZE_MBYTE          "MByte"
