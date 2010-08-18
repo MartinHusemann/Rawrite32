@@ -251,11 +251,12 @@ CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
 {
   m_hIcon = (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR);
   m_hSmallIcon = (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR);
-  m_mainMenu.LoadMenu(IDR_MAINFRAME);
   EnableAutomation();
   m_imageName = imageFileName;
   m_output.LoadString(IDS_START_HINT);
   if (m_usingVXD) m_writeTargetLogicalVolume = true;  // can only access DOS drives
+  m_mainMenu.LoadMenu(IDR_MAINFRAME);
+  UpdateMenu(&m_mainMenu);
 }
 
 CRawrite32Dlg::~CRawrite32Dlg()
@@ -599,8 +600,6 @@ void CRawrite32Dlg::FillDriveCombo()
   
   if (m_drives.GetCount() > 0)
     m_drives.SetCurSel(m_drives.GetCount()-1);
-
-  UpdateMenu(GetMenu());
 }
 
 void CRawrite32Dlg::UpdateMenu(CMenu *menu)
@@ -1261,6 +1260,7 @@ void CRawrite32Dlg::OnUseVolumes()
   if (m_writeTargetLogicalVolume) return;
   m_writeTargetLogicalVolume = true;
   FillDriveCombo();
+  UpdateMenu(&m_mainMenu);
 }
 
 void CRawrite32Dlg::OnUsePhysDisks()
@@ -1268,6 +1268,7 @@ void CRawrite32Dlg::OnUsePhysDisks()
   if (!m_writeTargetLogicalVolume) return;
   m_writeTargetLogicalVolume = false;
   FillDriveCombo();
+  UpdateMenu(&m_mainMenu);
 }
 
 void CRawrite32Dlg::OnSecSkipOptions()
