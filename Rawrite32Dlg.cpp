@@ -377,6 +377,7 @@ STDMETHODIMP CRawrite32Dlg::XDrop::Drop(IDataObject * pDataObject, DWORD /*grfKe
   return S_OK;
 }
 
+#if _MSC_VER < 1600
 extern "C" {
 // avoid DDK includes, just paste some stuff here
 enum STORAGE_PROPERTY_ID {
@@ -419,6 +420,7 @@ struct STORAGE_DEVICE_DESCRIPTOR {
 };
 #define IOCTL_STORAGE_QUERY_PROPERTY   CTL_CODE(IOCTL_STORAGE_BASE, 0x0500, METHOD_BUFFERED, FILE_ANY_ACCESS)
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 // CRawrite32Dlg message handlers

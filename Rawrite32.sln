@@ -1,14 +1,10 @@
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Rawrite32", "Rawrite32.vcproj", "{9EA9ED6D-3F92-4575-A78A-24605CB4096C}"
-	ProjectSection(ProjectDependencies) = postProject
-		{25B65B14-8959-416A-9A68-D57B86B07260} = {25B65B14-8959-416A-9A68-D57B86B07260}
-		{2434BF44-33B4-4960-BCB6-631FDAC69419} = {2434BF44-33B4-4960-BCB6-631FDAC69419}
-	EndProjectSection
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Rawrite32", "Rawrite32.vcxproj", "{9EA9ED6D-3F92-4575-A78A-24605CB4096C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "zlib\zlib.vcproj", "{25B65B14-8959-416A-9A68-D57B86B07260}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "zlib\zlib.vcxproj", "{25B65B14-8959-416A-9A68-D57B86B07260}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libbz2", "bz2lib\libbz2.vcproj", "{2434BF44-33B4-4960-BCB6-631FDAC69419}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libbz2", "bz2lib\libbz2.vcxproj", "{2434BF44-33B4-4960-BCB6-631FDAC69419}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
