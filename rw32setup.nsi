@@ -3,8 +3,11 @@
 ;General
 
   ;Name and file
-  !define PRODUCT_VERSION "1.0.2.0"
-  !define PRODUCT_NAME    "Rawrite32"
+  !define PRODUCT_VERSION		"1.0.2.0"
+  !define PRODUCT_NAME			"Rawrite32"
+  !define PRODUCT_PUBLISHER		"Martin Husemann"
+  !define PRODUCT_URL			"http://www.netbsd.org/~martin/rawrite32"
+  
   !define PRODUCT_UNINSTALL "${PRODUCT_NAME} uninstall"
   !define INSTALLER_EXE_NAME "rw32-setup-${PRODUCT_VERSION}.exe"
   
@@ -104,6 +107,16 @@ Section ${PRODUCT_NAME}
   WriteRegStr HKLM "${UNINSTALL_REGISTRY_PATH}\${PRODUCT_NAME}" "UninstallString" "$INSTDIR\Uninstall.exe"
   WriteRegDWORD HKLM "${UNINSTALL_REGISTRY_PATH}\${PRODUCT_NAME}" "NoModify" "1"
   WriteRegDWORD HKLM "${UNINSTALL_REGISTRY_PATH}\${PRODUCT_NAME}" "NoRepair" "1"
+
+  ; Find out installation size
+  !include "FileFunc.nsh"
+  ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
+  IntFmt $0 "0x%08X" $0
+  WriteRegDWORD HKLM "${UNINSTALL_REGISTRY_PATH}\${PRODUCT_NAME}" "EstimatedSize" "$0"
+  WriteRegStr HKLM "${UNINSTALL_REGISTRY_PATH}\${PRODUCT_NAME}" "DisplayVersion" "${PRODUCT_VERSION}"
+  WriteRegStr HKLM "${UNINSTALL_REGISTRY_PATH}\${PRODUCT_NAME}" "DisplayIcon" "$INSTDIR\O2CPlayer.ocx"
+  WriteRegStr HKLM "${UNINSTALL_REGISTRY_PATH}\${PRODUCT_NAME}" "Publisher" "${PRODUCT_PUBLISHER}"
+  WriteRegStr HKLM "${UNINSTALL_REGISTRY_PATH}\${PRODUCT_NAME}" "URLInfoAbout" "${PRODUCT_URL}"
   
 SectionEnd
 
