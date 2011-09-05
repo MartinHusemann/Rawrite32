@@ -1025,9 +1025,10 @@ void CRawrite32Dlg::OnWriteImage()
         outHash->AddData(outData, size);
 #ifndef NULL_OUTPUT
         if (!WriteFile(m_outputDevice, outData, size, &written, NULL) || written != size) {
+          DWORD err = GetLastError();
           InterlockedExchange(&m_decompForcedExit, 1);
           SetEvent(m_decompOutputSpaceAvailable);
-          ShowError(GetLastError(), IDP_WRITE_ERROR);
+          ShowError(err, IDP_WRITE_ERROR);
           success = false;
           break;
         }
