@@ -436,8 +436,6 @@ void CRawrite32Dlg::EnumPhysicalDrives()
     DWORD type = GetDriveType(drive);
     if (type != DRIVE_REMOVABLE) continue;
     CString volName(drive, 2);
-    TCHAR d = volName[0];
-    if (d != 'a' && d != 'A' && d != 'b' && d != 'B') break;  // we are only interested in floppy drives here
     DriveSelectionEntry driveDesc;
     driveDesc.volumes.push_back(volName);
     driveDesc.driveNumber = ~0U;
@@ -509,7 +507,7 @@ void CRawrite32Dlg::EnumPhysicalDrives()
   for (drive = allDrives; *drive; drive += _tcslen(drive)+1) {
     CString internalFileName, vol(drive,2);
     DWORD type = GetDriveType(drive);
-    if (type == DRIVE_REMOVABLE ||type == DRIVE_CDROM || type == DRIVE_REMOTE || type == DRIVE_RAMDISK) continue;
+    if (type == DRIVE_CDROM || type == DRIVE_REMOTE || type == DRIVE_RAMDISK) continue;
     internalFileName.Format(_T("\\\\.\\%s"), vol);
     HANDLE outputDevice = CreateFile(internalFileName, 0, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
     if (outputDevice != INVALID_HANDLE_VALUE) {
@@ -517,8 +515,17 @@ void CRawrite32Dlg::EnumPhysicalDrives()
       DWORD bytes = 0;
       if (DeviceIoControl(outputDevice, IOCTL_STORAGE_GET_DEVICE_NUMBER, NULL, 0, &sdn, sizeof sdn, &bytes, NULL)) {
         for (size_t i = 0; i < m_driveData.size(); i++) {
-          if (m_driveData[i].driveNumber == sdn.DeviceNumber)
+          if (m_driveData[i].driveNumber == sdn.DeviceNumber) {
             m_driveData[i].volumes.push_back(vol);
+            // check if this volume has already been enumerated before (unpartitioned removable disks)
+            for (size_t j = 0; j < m_driveData.size(); j++) {
+              if (m_driveData[j].driveNumber != ~0U) continue;
+              if (m_driveData[j].volumes.size() == 1 && m_driveData[j].volumes[0].CompareNoCase(vol) == 0) {
+                m_driveData.erase(m_driveData.begin()+j);
+                break;
+              }
+            }
+          }
         }
       }
       CloseHandle(outputDevice);

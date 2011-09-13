@@ -106,6 +106,8 @@ protected:
 #ifdef _M_IX86            // special case for legacy versions on arch=i386
   DWORD m_sectorOut;      // next sector to write
   bool m_usingVXD;        // true if we are on Win9x and can't write raw devices directly
+#else
+#define m_usingVXD  false
 #endif
 
 protected:
