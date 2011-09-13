@@ -901,7 +901,11 @@ void CRawrite32Dlg::OnWriteImage()
       WriteFile(m_outputDevice, m_outputBuffer, PARTITION_INFO_SIZE, &bytes, NULL);
       DeviceIoControl(m_outputDevice, IOCTL_DISK_UPDATE_PROPERTIES, NULL, 0, NULL, 0, &bytes, NULL);
       CloseHandle(m_outputDevice);
-      m_outputDevice = CreateFile(internalFileName, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+      m_outputDevice = CreateFile(internalFileName, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+      if (m_outputDevice == INVALID_HANDLE_VALUE) {
+        ShowError(GetLastError(), IDP_NO_DISK);
+        return;
+      }
     }
 
     DISK_GEOMETRY_EX diskInfo;
