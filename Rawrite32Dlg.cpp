@@ -767,7 +767,10 @@ void CRawrite32Dlg::ShowError(DWORD err, UINT id, LPCTSTR arg)
     msg.Format(id, arg);
   else
     msg.LoadString(id);
-  CString t; t.Format(_T("%s\r\n[#%u]"), msg, err);
+  LPTSTR errStr = NULL;
+  FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_IGNORE_INSERTS,NULL,err,0,(LPTSTR)&errStr,1,NULL);
+  CString t; t.Format(_T("%s\r\n[#%u] %s"), msg, err, errStr);
+  LocalFree(errStr);
   m_output += t;
   ShowOutput();
   AfxMessageBox(msg, MB_OK|MB_ICONERROR, id);
