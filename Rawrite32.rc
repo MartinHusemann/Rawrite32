@@ -232,6 +232,7 @@ END
 #include "lang\de.rc2"
 #include "lang\fr.rc2"
 #include "lang\jp.rc2"
+#include "lang\cn.rc2"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
