@@ -216,7 +216,8 @@ BEGIN
     "#include ""version.rc2""\r\n"
     "#include ""lang\\de.rc2""\r\n"
     "#include ""lang\\fr.rc2""\r\n"
-    "#include ""lang\\jp.rc2""\r\0"
+    "#include ""lang\\jp.rc2""\r\n"
+    "#include ""lang\\cn.rc2""\r\0"
 END
 
 #endif    // APSTUDIO_INVOKED
