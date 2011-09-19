@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source files">
+      <UniqueIdentifier>{596fd3d6-6088-41b3-a873-069f759eec56}</UniqueIdentifier>
+      <Extensions>*.c</Extensions>
+    </Filter>
+    <Filter Include="Header files">
+      <UniqueIdentifier>{7f289758-731e-4634-b1a1-87d0a8724c30}</UniqueIdentifier>
+      <Extensions>*.h</Extensions>
+    </Filter>
+    <Filter Include="Doc files">
+      <UniqueIdentifier>{ad2f876f-ee57-4a5d-9cdc-1f0cce858fd5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="adler32.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="compress.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="crc32.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="deflate.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="gzclose.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="gzlib.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="gzread.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="gzwrite.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="inffast.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="inflate.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="inftrees.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="trees.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="uncompr.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="zutil.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="algorithm.txt">
+      <Filter>Doc files</Filter>
+    </None>
+    <None Include="ChangeLog">
+      <Filter>Doc files</Filter>
+    </None>
+    <None Include="README">
+      <Filter>Doc files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="crc32.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="deflate.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="gzguts.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="inffast.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="inffixed.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="inflate.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="inftrees.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="trees.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="zconf.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="zutil.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="contrib\masmx86\inffas32.asm">
+      <Filter>Source files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="contrib\masmx86\match686.asm">
+      <Filter>Source files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

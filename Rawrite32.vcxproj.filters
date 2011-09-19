@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{cc2cc595-6e1a-4aba-9496-d8e1411e75bf}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{36fcb87e-b43f-4b41-8ad6-093d919c5622}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{35afa20a-a705-43ff-97bc-334a0a859c2d}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="NetBSD-Library">
+      <UniqueIdentifier>{a323da98-e462-4a16-91cf-383fe61d2b3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NetBSD-Library\Source Files">
+      <UniqueIdentifier>{ce90b008-ce5d-47ba-970c-09c722417bbb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NetBSD-Library\Header Files">
+      <UniqueIdentifier>{fa8a3148-acb5-4f32-b5c6-bfc8a63f9899}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Decompress.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Hash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rawrite32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rawrite32Dlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NetBSD\md5c.c">
+      <Filter>NetBSD-Library\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NetBSD\sha1.c">
+      <Filter>NetBSD-Library\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NetBSD\sha2.c">
+      <Filter>NetBSD-Library\Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Rawrite32.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Decompress.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rawrite32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rawrite32Dlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NetBSD\md5.h">
+      <Filter>NetBSD-Library\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NetBSD\namespace.h">
+      <Filter>NetBSD-Library\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NetBSD\sys\sha1.h">
+      <Filter>NetBSD-Library\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NetBSD\sys\sha2.h">
+      <Filter>NetBSD-Library\Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\Rawrite32.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="COPYRIGHT" />
+  </ItemGroup>
+</Project>
