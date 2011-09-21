@@ -46,7 +46,7 @@ NetBSD disk/USB stick image tool for Win32</td>
 You may use this tool for preparing floppy disks or ZIP media to
 boot NetBSD from. It takes a file called "a filesystem image" (usually
 with a ".fs" suffix) or a compressed variant thereof (usually with ".fs.gz"
-suffix) and writes it to a removeable medium. This is similar to formating
+suffix) and writes it to a removeable medium. This is similar to formatting
 a disk with the "transfer system files" option checked.
 <p>This program has it's homepage at 
 <a href="http://www.netbsd.org/~martin/rawrite32/">http://www.netbsd.org/~martin/rawrite32/</a>,
@@ -84,10 +84,10 @@ The typical workflow is:<br>
 <li><a href="#btnWriteToDisk">Write</a> image to device</li>
 </ol>
 For the latter item, note that you can select between writing to physical
-devices mode (the default), and writing to partitions (which is usefull for
+devices mode (the default), and writing to partitions (which is useful for
 backup/restore purposes, but not in the context of creating NetBSD boot
 media).
-<p>If you are using an ancient Win9x/Millenium version, you will
+<p>If you are using an ancient Win9x/Millennium version, you will
 only be able to write to floppy disks.
 </p>
 </td></tr>
@@ -105,8 +105,7 @@ especially the <a href="#mnuSettings">settings</a> icon and the
 <img src="images/Rawrite-settings-menu.png" alt="Settings menu">
 <p><a href="#hashoptions">Hash options</a> shows a dialog to select hash
 values calculated when opening image
-files, and the selection between physical device and logical partition
-target mode.</p>
+files.</p>
 <p><a href="#edtSector">Sector skip</a> shows a dialog to select the
 first sector written to the medium, or in other words: how many sectors
 to skip at the start.
@@ -139,7 +138,7 @@ most important, the "about" box.
 <tr><td><img src="images/Rawrite-hashoptions.png" alt="Options"></td>
 <td valign="top">
 <p>Hash values are used to ensure the integrity of a downloaded file.</p>
-<p>Basically they are strong cryptogrphic check sums over the input file.
+<p>Basically they are strong cryptographic check sums over the input file.
 If you compare the values calculated by Rawrite32 (and copied to the
 windows clipboard) with the values published by the publisher of the
 disk image you have downloaded, you should be able to spot any alterations
@@ -151,9 +150,9 @@ case, the default selection will deliver all the values you might need.</p>
 <p>If the sum for a strong algorithm (like SHA512) matches, there is no
 need to compare all the weaker results too.</p>
 <p>The hash options, by default, will fit your computers abilities, i.e.
-use the minimal usefull set on slower/single CPU machines, and calculate
+use the minimal useful set on slower/single CPU machines, and calculate
 all available hashes on multi core machines, where additional hash values
-will not cause a noticable slowdown.</p>
+will not cause a noticeable slowdown.</p>
 </td></tr>
 </table>
 <hr>
@@ -168,9 +167,9 @@ The filename of the image to be written to disk. Rawrite32 accepts filesystem
 image files (suffix ".fs") and compressed filesystem images (suffix
 ".fs.gz" or ".fs.bz2"). The utility doesn't verify the contents of the image (i.e. you
 can use this tool to write a word document on your boot disk if you like),
-but it displays the MD5 checksum of the file (and additionaly of the decompressed
+but it displays the MD5 checksum of the file (and additionally of the decompressed
 contents, if the file is compressed). These values are displayed in the output
-area and copie to the clipboard. These values are published with every release
+area and copied to the clipboard. These values are published with every release
 or snapshot of NetBSD boot media, so you can compare them and verify you got
 the original image.
 <hr>
@@ -182,7 +181,7 @@ volumes; if using physical device mode, it lists all devices. Devices that
 carry the current windows installation system directory are not offered
 (i.e. you typically will not see the device with C:\ on it in this list).
 <br>
-Be very carefull when selecting a target, this program is able to kill all
+Be very careful when selecting a target, this program is able to kill all
 the contents on the selected drive/device. It will delete all previous
 contents, so you better double check the selection.
 <hr>
@@ -193,7 +192,7 @@ contents, so you better double check the selection.
 telling you to enter some value here!<p>
 Some install media preparation process may involve copying multiple images to
 a media or leaving the first part of the media alone for other reasons (e.g.
-because it contains a partition table). This can be acomplished by entering the
+because it contains a partition table). This can be accomplished by entering the
 number of (512 Byte sized) sectors to skip at the start of the device here
 when writing the second (or later) parts of the contents.
 <hr>
@@ -253,7 +252,7 @@ file to write as it's parameter.
 Copyright © 2010 Izumi Tsutsui &lt;<a href="mailto:tsutsui@NetBSD.org">tsutsui@NetBSD.org</a>&gt;.<br>
 Copyright © 2010 Quentin Garnier &lt;<a href="mailto:cube@NetBSD.org">cube@NetBSD.org</a>&gt;.<br>
 All rights reserved.<p>
-Useage of this program is free. Use it at your own risk. See the full license for
+Usage of this program is free. Use it at your own risk. See the full license for
 details.<p>
 If you would like to redistribute this program in any form, please see the
 full <a href="http://www.NetBSD.org/~martin/rawrite32/license.html">license</a>
