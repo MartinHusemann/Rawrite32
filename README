@@ -1,12 +1,10 @@
 To make this source compile you need
 
- - MS DevStudio .NET
+ - MS Visual Studio 2010
  - some additional files
 
-Copy the following files from the NetBSD distribution into the NetBSD 
-subdirectory:
-
-src/lib/libc/md/md5c.c
-src/sys/sys/md5.h
-
 Get the complete zlib distribution and unpack it in the zlib subdirectory.
+Get the complete bz2lib distritibution and unpack it in the bz2lib
+subdirectory.
+
+To create the installer, you need the nullsoft install system.
