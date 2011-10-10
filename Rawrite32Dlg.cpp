@@ -520,6 +520,7 @@ void CRawrite32Dlg::EnumPhysicalDrives()
             // check if this volume has already been enumerated before (unpartitioned removable disks)
             for (size_t j = 0; j < m_driveData.size(); j++) {
               if (m_driveData[j].driveNumber != ~0U) continue;
+              if (i == j) continue;
               if (m_driveData[j].volumes.size() == 1 && m_driveData[j].volumes[0].CompareNoCase(vol) == 0) {
                 m_driveData.erase(m_driveData.begin()+j);
                 break;
