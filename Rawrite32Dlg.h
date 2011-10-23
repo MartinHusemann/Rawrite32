@@ -96,6 +96,7 @@ protected:
   DWORD64 m_sizeWritten;  // bytes written to output device
   const BYTE *m_fsImage;  // input image
   size_t m_fsImageSize;   // size of input image
+  void *m_startBuf;       // saved "start of disk" part
 
   // during decompression:
   const BYTE *m_curInput; // pointer to next input data

@@ -244,7 +244,8 @@ CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
     m_decompOutputAvailable(INVALID_HANDLE_VALUE),
     m_decomp(NULL),
     m_decompOutputLen(0), m_curDecompTarget(0), m_decompForcedExit(0), m_writerIdle(0),
-    m_outputBuffer(new BYTE[OUTPUT_BUF_SIZE]), m_writeTargetLogicalVolume(false)
+    m_outputBuffer(new BYTE[OUTPUT_BUF_SIZE]), m_writeTargetLogicalVolume(false),
+    m_startBuf(NULL)
 #ifdef _M_IX86
     , m_usingVXD(RunningOnDOS()), m_sectorOut(0)
 #endif
@@ -262,6 +263,7 @@ CRawrite32Dlg::CRawrite32Dlg(LPCTSTR imageFileName)
 CRawrite32Dlg::~CRawrite32Dlg()
 {
   CloseInputFile();
+  delete [] m_startBuf;
   delete [] m_outputBuffer;
 }
 
@@ -843,6 +845,7 @@ void CRawrite32Dlg::OnWriteImage()
   CString drive, msg, internalFileName;
   DWORD ddIndex = 0;
   DWORD driveIndex = 0;
+  bool didSkipStartBuf = false;
 
   int ndx = m_drives.GetCurSel();
   if (ndx == CB_ERR) return;
@@ -900,7 +903,6 @@ void CRawrite32Dlg::OnWriteImage()
       }
       memset(m_outputBuffer, 0, PARTITION_INFO_SIZE);
       WriteFile(m_outputDevice, m_outputBuffer, PARTITION_INFO_SIZE, &bytes, NULL);
-      DeviceIoControl(m_outputDevice, IOCTL_DISK_UPDATE_PROPERTIES, NULL, 0, NULL, 0, &bytes, NULL);
       CloseHandle(m_outputDevice);
       m_outputDevice = CreateFile(internalFileName, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
       if (m_outputDevice == INVALID_HANDLE_VALUE) {
@@ -1039,6 +1041,15 @@ void CRawrite32Dlg::OnWriteImage()
         if (size > MAX_WRITE_CHUNK) size = MAX_WRITE_CHUNK;
         outHash->AddData(outData, size);
 #ifndef NULL_OUTPUT
+        // special handle first chunk to prevent file system recognition by the shell
+        // before we are done writing
+        if (m_sectorSkip == 0 && m_sizeWritten == 0 && outSize >= PARTITION_INFO_SIZE) { // XXX - we are lazy and only handle large enough initial data chunks here
+          if (!m_startBuf) m_startBuf = new BYTE[PARTITION_INFO_SIZE];
+          memcpy(m_startBuf, outData, PARTITION_INFO_SIZE);
+          memset(const_cast<BYTE*>(outData), 0, PARTITION_INFO_SIZE);
+          didSkipStartBuf = true;
+        }
+
         if (!WriteFile(m_outputDevice, outData, size, &written, NULL) || written != size) {
           DWORD err = GetLastError();
           InterlockedExchange(&m_decompForcedExit, 1);
@@ -1090,6 +1101,16 @@ void CRawrite32Dlg::OnWriteImage()
   } else
 #endif
   {
+    if (didSkipStartBuf) {
+      SetFilePointer(m_outputDevice, 0, NULL, FILE_BEGIN);
+      DWORD written = 0;
+      if (!WriteFile(m_outputDevice, m_startBuf, PARTITION_INFO_SIZE, &written, NULL) || written != PARTITION_INFO_SIZE) {
+        DWORD err = GetLastError();
+        ShowError(err, IDP_WRITE_ERROR);
+        success = false;
+      }
+    }
+
     DWORD bytes = 0;
     if (m_writeTargetLogicalVolume)
       DeviceIoControl(m_outputDevice, FSCTL_UNLOCK_VOLUME, NULL, 0, NULL, 0, &bytes, NULL);
