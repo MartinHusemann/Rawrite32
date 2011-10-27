@@ -38,8 +38,11 @@ bootstrap a new installation.
 </p><p>
 You can download the file system images via the internet and move the contents
 onto appropriate media for your machine using this utility program.<p>
-Rawrite32 runs on any kind of Win32 system, but on ancient systems (Windows 95
-upto Windows ME) has some restrictions.
+The Rawrite32 sources support any kind of Win32 system (with some restrictions
+for ancient systems, Windows 95 upto Windows ME). The precompiled binary,
+however, only works on Windows 2000 or newer. Contact the author if you have
+a real need for a binary supporting win9x systems - if there is demand, I can
+make a differently compiled binary available.
 </p><p>
 You may use Rawrite32 for free, it is 2-clause BSD licensed, see the <a href="license.html">license</a>
 for details.
@@ -49,13 +52,20 @@ for details.
 </div>
 <br style="clear:both">
 <div>
-<p><b>September 25, 2011: New Version 1.0.2.1 released!</b></p>
+<p><b>October 28, 2011: New Version 1.0.2.2 released!</b></p>
 <p style="margin-left:2.5em">
+The previous version actually broke writing to floppy drives (yes, they still
+do exist!). Thanks to Stephen Borrill for noticing and help with debugging.<br>
+Also writing of images wich contain filesystems known to windows (fat, ntfs)
+has been improved - they will only be recognized by the shell after rawrite32
+is done writing.
+</p>
+<p style="margin-top:4ex">Old changes:</p>
+<p>September 25, 2011: New Version 1.0.2.1 released.</p>
 A few bugs with sticks showing up as <q>REMOVABLE_DRIVE</q> have
 been fixed. Furthermore the program has been translated into
 chinese <i>(thanks to Charles Zhang)</i>.
 </p>
-<p style="margin-top:4ex">Old changes:</p>
 <p>August 19, 2010: New Version 1.0.2.0 released.</p>
 <p>After a long time, Rawrite32 has been adapted to newer windows versions
 pand their restrictions on administrative use.
