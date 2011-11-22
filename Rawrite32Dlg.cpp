@@ -630,7 +630,7 @@ BOOL CRawrite32Dlg::OnInitDialog()
   GetWindowRect(&r);
   m_origHeight = r.Height();
 
-  m_outWinFont.CreateFont(-12, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET,
+  m_outWinFont.CreateFont(-12, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
                           OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
                           FIXED_PITCH|FF_DONTCARE, NULL);
   GetDlgItem(IDC_OUTPUT)->SetFont(&m_outWinFont);
