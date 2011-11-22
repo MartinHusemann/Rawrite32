@@ -1046,11 +1046,21 @@ void CRawrite32Dlg::OnWriteImage()
         if (m_sectorSkip == 0 && m_sizeWritten == 0 && outSize >= PARTITION_INFO_SIZE) { // XXX - we are lazy and only handle large enough initial data chunks here
           if (!m_startBuf) m_startBuf = new BYTE[PARTITION_INFO_SIZE];
           memcpy(m_startBuf, outData, PARTITION_INFO_SIZE);
-          memset(const_cast<BYTE*>(outData), 0, PARTITION_INFO_SIZE);
           didSkipStartBuf = true;
+          outData += PARTITION_INFO_SIZE;
+          m_sizeWritten += PARTITION_INFO_SIZE;
+          outSize -= PARTITION_INFO_SIZE;
+          BYTE zero[PARTITION_INFO_SIZE];
+          memset(&zero, 0, PARTITION_INFO_SIZE);
+          DWORD zeroed = 0;
+          DWORD zeroSize = PARTITION_INFO_SIZE;
+          if (!WriteFile(m_outputDevice, zero, zeroSize, &zeroed, NULL) || zeroed != zeroSize)
+            goto write_error;
+          if (outSize == 0) break;
         }
 
         if (!WriteFile(m_outputDevice, outData, size, &written, NULL) || written != size) {
+write_error:
           DWORD err = GetLastError();
           InterlockedExchange(&m_decompForcedExit, 1);
           SetEvent(m_decompOutputSpaceAvailable);
