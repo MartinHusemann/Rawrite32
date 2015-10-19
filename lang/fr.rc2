@@ -104,7 +104,7 @@ BEGIN
     IDS_ABOUTBOX            "&À propos de Rawrite32..."
     IDS_OPEN_IMAGE_FILTER   "Images disques (compressées) (*.gz, *.bz2, *.fs)|*.gz;*.bz2;*.fs|Images binaires (*.bin)|*.bin|Tous fichiers (*.*)|*.*||"
     IDS_OPEN_IMAGE_TITLE    "Ouvrir une image disque"
-    IDS_MESSAGE_INPUT_HASHES "Image disque %s (%s):"
+    IDS_MESSAGE_INPUT_HASHES "Image disque %s (%s)"
     IDP_ARE_YOU_SURE        "Êtes vous sûr de vouloir écrire l'image sur le lecteur %s ?\r\nATTENTION : le contenu du disque dans ce lecteur sera écrasé !"
     IDP_NO_DISK             "Impossible d'accéder au lecteur !\r\nVérifiez qu'un medium est présent et que vous disposez des droits administrateur."
     IDP_WRITE_ERROR         "Erreur lors de l'écriture sur le disque !"

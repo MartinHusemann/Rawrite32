@@ -138,7 +138,7 @@ BEGIN
     IDS_ABOUTBOX            "&About Rawrite32..."
     IDS_OPEN_IMAGE_FILTER   "(Compressed) fs images (*.gz, *.bz2, *.fs)|*.gz;*.bz2;*.fs|Binary images (*.bin)|*.bin|All files (*.*)|*.*||"
     IDS_OPEN_IMAGE_TITLE    "Open a file system image"
-    IDS_MESSAGE_INPUT_HASHES "File system image %s (%s):"
+    IDS_MESSAGE_INPUT_HASHES "File system image %s (%s)"
     IDP_ARE_YOU_SURE        "Are you sure you would like to write the loaded image to drive %s ?\r\nATTENTION: this will destroy all contents of the disk in that drive!"
     IDP_NO_DISK             "Could not access device!\r\nMake sure a medium is inserted and you have administrative privileges."
     IDP_WRITE_ERROR         "Error writing to disk!"

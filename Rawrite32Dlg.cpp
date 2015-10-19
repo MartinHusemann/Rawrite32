@@ -1250,7 +1250,10 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
     CString size;
     FormatSize(m_inputFileSize, size);
     m_output.Format(IDS_MESSAGE_INPUT_HASHES, m_imageName, size);
-    m_output += "\r\n" + hashValues + "\r\n";
+    if (hashValues.IsEmpty())
+      m_output += "\r\n";
+    else
+      m_output += "\r\n" + hashValues + "\r\n";
     // show message
     ShowOutput();
     retVal = true;
@@ -1396,6 +1399,7 @@ void CRawrite32Dlg::CalcHashes(CString &out)
       hashes.push_back(s);
     }
   }
+  if (hashes.empty()) return;
 
 #ifdef HASH_TOTAL_TIME
   DWORD totalStart = ::GetTickCount();
