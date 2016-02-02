@@ -1130,20 +1130,20 @@ write_error:
 
   if (m_decomp) {
     if (m_decomp->isError()) {
-      CString msg;
-      msg.LoadString(IDP_DECOMP_ERROR);
-      m_output += "\r\n" + msg;
+      CString aMsg;
+      aMsg.LoadString(IDP_DECOMP_ERROR);
+      m_output += "\r\n" + aMsg;
       success = false;
     }
     m_decomp->Delete();
   }
 
   if (success) {
-    CString msg, len, hash;
+    CString aMsg, len, hash;
     outHash->HashResult(hash);
     FormatSize(m_sizeWritten, len);
-    msg.Format(IDS_SUCCESS, len, outHash->HashName(), hash);
-    m_output += msg += "\r\n\r\n";
+    aMsg.Format(IDS_SUCCESS, len, outHash->HashName(), hash);
+    m_output += aMsg += "\r\n\r\n";
   }
   outHash->Delete();
   ShowOutput();
@@ -1261,8 +1261,8 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
     // and copy to clipboard
     if (OpenClipboard()) {
       EmptyClipboard();
-      DWORD size = m_output.GetLength() + 1;
-      HANDLE hGlob = GlobalAlloc(GMEM_MOVEABLE, size*sizeof(TCHAR));
+      DWORD cbSize = m_output.GetLength() + 1;
+      HANDLE hGlob = GlobalAlloc(GMEM_MOVEABLE, cbSize*sizeof(TCHAR));
       LPTSTR cnt = (LPTSTR)GlobalLock(hGlob);
       _tcscpy(cnt, m_output);
       GlobalUnlock(hGlob);
@@ -1459,14 +1459,14 @@ void CRawrite32Dlg::CalcHashes(CString &out)
   CString t;
   for (size_t i = 0; i < hashes.size(); i++) {
     enum { outSplitLen = 64 };
-    CString out,name,p; hashes[i].hashImpl->HashResult(out);
+    CString txt,name,p; hashes[i].hashImpl->HashResult(txt);
     name.Format(_T("%-8s"), hashes[i].hashImpl->HashName());
     t += "\r\n" + name;
-    while (out.GetLength() > outSplitLen) {
-      t += out.Left(outSplitLen) + "\r\n        ";
-      out = out.Mid(outSplitLen);
+    while (txt.GetLength() > outSplitLen) {
+      t += txt.Left(outSplitLen) + "\r\n        ";
+      txt = txt.Mid(outSplitLen);
     }
-    t += out;
+    t += txt;
     hashes[i].hashImpl->Delete();
     CloseHandle(hashes[i].DataAvailable);
     CloseHandle(hashes[i].DataDone);
