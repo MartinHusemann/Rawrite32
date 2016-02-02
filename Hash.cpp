@@ -306,5 +306,12 @@ void SelectHash(LPCTSTR hashName, bool activate)
 
 IGenericHash *GetFastHash()
 {
-  return new CHashMD5;
+  vector<IGenericHash*> all;
+  GetAllHashes(all);
+  if (!all.empty()) return all.front();
+  SYSTEM_INFO info;
+  GetSystemInfo(&info);
+  if (info.dwNumberOfProcessors <= 2)
+    return new CHashMD5;
+  return new CHashSHA256;
 }
