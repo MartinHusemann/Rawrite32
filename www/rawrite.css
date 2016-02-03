@@ -35,24 +35,30 @@
   text-decoration: underline;
 }
 
+td.downloadList {
+  padding: 1ex;
+  vertical-align: top;
+}
+
 .downloadList {
   margin-bottom: 3.5ex;
   background: #a0;
 }
 
+td.downloadTag {
+  padding: 1ex;
+}
+
 .downloadTag {
-  float:left;
-  position: relative;
-  top: 1ex;
-  left: 4em;
+  margin-bottom: 1.5ex;
 }
 
 .downloadLink {
+  font-size: 80%;
   float:left;
   width: 200px;
   height: 26px;
   background-image:url(downloadbutton.png);
-  margin-bottom: 1ex;
 }
 
 .downloadLink a {
