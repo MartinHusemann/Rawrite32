@@ -250,6 +250,9 @@
       <Project>{2434bf44-33b4-4960-bcb6-631fdac69419}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="xz\windows\liblzma.vcxproj">
+      <Project>{12728250-16ec-4dc6-94d7-e21dd88947f8}</Project>
+    </ProjectReference>
     <ProjectReference Include="zlib\zlib.vcxproj">
       <Project>{25b65b14-8959-416a-9a68-d57b86b07260}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
