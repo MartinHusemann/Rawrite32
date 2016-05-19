@@ -34,6 +34,9 @@
 #include "StdAfx.h"
 extern "C" {
 #include "zlib/zlib.h"
+
+#define LZMA_API_STATIC
+#include "xzutils/src/liblzma/api/lzma.h"
 }
 #include "bz2lib/bzlib.h"
 
@@ -284,11 +287,111 @@ void CBZ2Decompressor::Delete()
   delete this;
 }
 
+class CXZDecompressor : public IGenericDecompressor {
+public:
+  static CXZDecompressor* Open(const BYTE *data, size_t len);
+  virtual bool isError();
+  virtual bool allDone();
+  virtual bool needInputData();
+  virtual void AddInputData(const BYTE *data, size_t len);
+  virtual void SetOutputSpace(BYTE *out, size_t len);
+  virtual size_t outputSpace();
+  virtual void LimitOutputSpace(size_t len);
+  virtual void Delete();
+protected:
+  CXZDecompressor(const BYTE *data, size_t len);
+  ~CXZDecompressor();
+  void Process();
+protected:
+  lzma_stream m_decomp;
+  bool m_eof, m_error;
+};
+
+CXZDecompressor* CXZDecompressor::Open(const BYTE *inputData, size_t inputSize)
+{
+  if (inputSize > 6 && inputData[0] == 0xFD && inputData[1] == '7' && inputData[2] == 'z'
+    && inputData[3] == 'X' && inputData[4] == 'Z' && inputData[5] == 0)
+      return new CXZDecompressor(inputData, inputSize);
+  return NULL;
+}
+
+CXZDecompressor::CXZDecompressor(const BYTE *data, size_t len)
+: m_eof(false), m_error(false)
+{
+  memset(&m_decomp, 0, sizeof m_decomp);
+  m_decomp.next_in = data;
+  m_decomp.avail_in = len;
+  lzma_stream_decoder(&m_decomp,UINT64_MAX,0);
+}
+
+CXZDecompressor::~CXZDecompressor()
+{
+  lzma_end(&m_decomp);
+}
+
+bool CXZDecompressor::isError()
+{
+  return m_error;
+}
+
+bool CXZDecompressor::allDone()
+{
+  return m_eof;
+}
+
+bool CXZDecompressor::needInputData()
+{
+  return m_decomp.avail_in == 0;
+}
+
+void CXZDecompressor::Process()
+{
+  int res = lzma_code(&m_decomp, LZMA_RUN);
+  if (res != LZMA_OK) {
+    if (res == LZMA_STREAM_END)
+      m_eof = true;
+    else
+      m_error = true;
+  }
+}
+
+void CXZDecompressor::AddInputData(const BYTE *data, size_t len)
+{
+  m_decomp.next_in = data;
+  m_decomp.avail_in = len;
+  Process();
+}
+
+void CXZDecompressor::SetOutputSpace(BYTE *out, size_t len)
+{
+  m_decomp.next_out = out;
+  m_decomp.avail_out = len;
+  Process();
+}
+
+size_t CXZDecompressor::outputSpace()
+{
+  return m_decomp.avail_out;
+}
+
+void CXZDecompressor::LimitOutputSpace(size_t len)
+{
+  ASSERT(len < m_decomp.avail_out);
+  m_decomp.avail_out = len;
+}
+
+void CXZDecompressor::Delete()
+{
+  delete this;
+}
+
 IGenericDecompressor *StartDecompress(const BYTE *data, size_t len)
 {
   IGenericDecompressor *decomp = CGzipDecompressor::Open(data, len);
   if (decomp) return decomp;
   decomp = CBZ2Decompressor::Open(data, len);
+  if (decomp) return decomp;
+  decomp = CXZDecompressor::Open(data, len);
   if (decomp) return decomp;
   return NULL;
 }
