@@ -63,6 +63,9 @@ protected:
   void Process();
 protected:
   z_stream_s m_decomp;
+#ifdef _DEBUG
+  size_t m_max_decomp_space;
+#endif
   DWORD m_crc;
   bool m_eof, m_error;
 };
@@ -108,6 +111,9 @@ CGzipDecompressor* CGzipDecompressor::Open(const BYTE *inputData, size_t inputSi
 
 CGzipDecompressor::CGzipDecompressor(const BYTE *data, size_t len)
 : m_eof(false), m_error(false)
+#ifdef _DEBUG
+  , m_max_decomp_space(0)
+#endif
 {
   memset(&m_decomp, 0, sizeof m_decomp);
   m_decomp.next_in = (BYTE*)data;
@@ -168,6 +174,9 @@ void CGzipDecompressor::AddInputData(const BYTE *data, size_t len)
 
 void CGzipDecompressor::SetOutputSpace(BYTE *out, size_t len)
 {
+#ifdef _DEBUG
+  m_max_decomp_space = len;
+#endif
   m_decomp.next_out = out;
   m_decomp.avail_out = len;
   Process();
@@ -180,7 +189,9 @@ size_t CGzipDecompressor::outputSpace()
 
 void CGzipDecompressor::LimitOutputSpace(size_t len)
 {
-  ASSERT(len < m_decomp.avail_out);
+#ifdef _DEBUG
+  ASSERT(len < m_max_decomp_space);
+#endif
   m_decomp.avail_out = len;
 }
 
@@ -206,6 +217,9 @@ protected:
   void Process();
 protected:
   bz_stream m_decomp;
+#ifdef _DEBUG
+  size_t m_max_decomp_space;
+#endif
   bool m_eof, m_error;
 };
 
@@ -219,6 +233,9 @@ CBZ2Decompressor* CBZ2Decompressor::Open(const BYTE *inputData, size_t inputSize
 
 CBZ2Decompressor::CBZ2Decompressor(const BYTE *data, size_t len)
 : m_eof(false), m_error(false)
+#ifdef _DEBUG
+  , m_max_decomp_space(0)
+#endif
 {
   memset(&m_decomp, 0, sizeof m_decomp);
   m_decomp.next_in = (char*)data;
@@ -266,6 +283,9 @@ void CBZ2Decompressor::AddInputData(const BYTE *data, size_t len)
 
 void CBZ2Decompressor::SetOutputSpace(BYTE *out, size_t len)
 {
+#ifdef _DEBUG
+  m_max_decomp_space = len;
+#endif
   m_decomp.next_out = (char*)out;
   m_decomp.avail_out = len;
   Process();
@@ -278,7 +298,9 @@ size_t CBZ2Decompressor::outputSpace()
 
 void CBZ2Decompressor::LimitOutputSpace(size_t len)
 {
-  ASSERT(len < m_decomp.avail_out);
+#ifdef _DEBUG
+  ASSERT(len < m_max_decomp_space);
+#endif
   m_decomp.avail_out = len;
 }
 
@@ -304,6 +326,9 @@ protected:
   void Process();
 protected:
   lzma_stream m_decomp;
+#ifdef _DEBUG
+  size_t m_max_decomp_space;
+#endif
   bool m_eof, m_error;
 };
 
@@ -317,6 +342,9 @@ CXZDecompressor* CXZDecompressor::Open(const BYTE *inputData, size_t inputSize)
 
 CXZDecompressor::CXZDecompressor(const BYTE *data, size_t len)
 : m_eof(false), m_error(false)
+#ifdef _DEBUG
+  , m_max_decomp_space(0)
+#endif
 {
   memset(&m_decomp, 0, sizeof m_decomp);
   m_decomp.next_in = data;
@@ -364,6 +392,9 @@ void CXZDecompressor::AddInputData(const BYTE *data, size_t len)
 
 void CXZDecompressor::SetOutputSpace(BYTE *out, size_t len)
 {
+#ifdef _DEBUG
+  m_max_decomp_space = len;
+#endif
   m_decomp.next_out = out;
   m_decomp.avail_out = len;
   Process();
@@ -376,7 +407,9 @@ size_t CXZDecompressor::outputSpace()
 
 void CXZDecompressor::LimitOutputSpace(size_t len)
 {
-  ASSERT(len < m_decomp.avail_out);
+#ifdef _DEBUG
+  ASSERT(len < m_max_decomp_space);
+#endif
   m_decomp.avail_out = len;
 }
 
