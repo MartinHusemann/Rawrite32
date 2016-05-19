@@ -36,7 +36,7 @@ extern "C" {
 #include "zlib/zlib.h"
 
 #define LZMA_API_STATIC
-#include "xzutils/src/liblzma/api/lzma.h"
+#include "xz/src/liblzma/api/lzma.h"
 }
 #include "bz2lib/bzlib.h"
 
