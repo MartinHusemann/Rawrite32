@@ -102,7 +102,7 @@ END
 STRINGTABLE 
 BEGIN
     IDS_ABOUTBOX            "&Über Rawrite32..."
-    IDS_OPEN_IMAGE_FILTER   "(komprimierte) Dateisysteme (*.gz, *.bz2, *.fs)|*.gz;*.bz2;*.fs|Binärdateien (*.bin)|*.bin|Alle Dateien (*.*)|*.*||"
+    IDS_OPEN_IMAGE_FILTER   "(komprimierte) Dateisysteme (*.gz, *.bz2, *.xz, *.fs)|*.gz;*.bz2;*.xz;*.fs|Binärdateien (*.bin)|*.bin|Alle Dateien (*.*)|*.*||"
     IDS_OPEN_IMAGE_TITLE    "Quelldatei öffnen"
     IDS_MESSAGE_INPUT_HASHES "Quelldatei %s (%s)"
     IDP_ARE_YOU_SURE        "Wollen Sie die gewählte Quelldatei auf das gewählte Laufwerk %s schreiben?\r\nACHTUNG: Alle Daten auf diesem Laufwerk werden überschrieben!"
