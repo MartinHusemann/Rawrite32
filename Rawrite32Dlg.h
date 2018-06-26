@@ -121,7 +121,7 @@ protected:
   void Poll();                        // handle all waiting messages
   bool MapInputView();                // map the next block at the current input offset
   bool AdvanceMapOffset();            // advance the input offset, return false if past end of file
-  void FormatSize(DWORD64, CString&, DWORD addFactor = 1); // format a human readable size from a value in bytes
+  void FormatSize(DWORD64, CString&, DWORD addFactor = 1) const; // format a human readable size from a value in bytes
   void ShowError(DWORD err, UINT id, LPCTSTR = NULL);
   void ShowOutput();
   void UpdateWriteProgress();
@@ -129,7 +129,7 @@ protected:
   void FillDriveCombo();
   void EnumPhysicalDrives();
   void EnumLogicalVolumes();
-  void CollectDebugInfo();
+  void CollectDebugInfo() const;
 
   // support for hidden main menu
   virtual BOOL PreTranslateMessage(MSG *pMsg);
