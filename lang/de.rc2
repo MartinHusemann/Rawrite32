@@ -85,6 +85,8 @@ BEGIN
       MENUITEM SEPARATOR
       MENUITEM "Auf logische Partitionen schreiben", IDM_USE_VOLUMES
       MENUITEM "Auf physikalische Geräte schreiben", IDM_USE_PHYSDISKS
+      MENUITEM SEPARATOR
+      MENUITEM "Diagnoseinformation zu verfügbaren Geräten ermitteln", IDM_COLLECT_DEBUG_INFO
     END
     POPUP "Hilfe"
     BEGIN
@@ -140,4 +142,5 @@ END
 STRINGTABLE 
 BEGIN
     IDP_CANT_UNMOUNT_VOLUME "Konnte Partition %s nicht abmelden.\r\nBitte schliessen Sie alle anderen Anwendungen und versuchen Sie es erneut."
+    IDP_DEBUG_INFO_COPIED   "Diagnoseinformationen wurden in die Zwischenablage kopiert!"
 END

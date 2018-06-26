@@ -85,6 +85,8 @@ BEGIN
       MENUITEM SEPARATOR
       MENUITEM "Écrire sur un volume logique",    IDM_USE_VOLUMES
       MENUITEM "Écrire sur un lecteur physique",  IDM_USE_PHYSDISKS
+      MENUITEM SEPARATOR
+      MENUITEM "Collect diagnostic informations about local devices", IDM_COLLECT_DEBUG_INFO
     END
     POPUP "Aide"
     BEGIN
@@ -140,4 +142,5 @@ END
 STRINGTABLE 
 BEGIN
     IDP_CANT_UNMOUNT_VOLUME "Impossible de démonter le volume %s\r\nVeuillez fermer toutes les applications qui utilisent ce volume et recommencer."
+    IDP_DEBUG_INFO_COPIED   "Diagnostic information has been copied to the clipboard!"
 END

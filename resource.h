@@ -46,6 +46,8 @@
 #define IDP_CANT_UNMOUNT_VOLUME         1024
 #define IDI_HELP                        1025
 #define IDI_OPTIONS                     1026
+#define IDM_COLLECT_DEBUG_INFO          1027
+#define IDP_DEBUG_INFO_COPIED           1028
 
 // Next default values for new objects
 // 

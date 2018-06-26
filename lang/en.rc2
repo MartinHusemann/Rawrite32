@@ -85,6 +85,8 @@ BEGIN
       MENUITEM SEPARATOR
       MENUITEM "Write to logical volumes",  IDM_USE_VOLUMES
       MENUITEM "Write to physical devices", IDM_USE_PHYSDISKS
+      MENUITEM SEPARATOR
+      MENUITEM "Collect diagnostic informations about local devices", IDM_COLLECT_DEBUG_INFO
     END
     POPUP "Help"
     BEGIN
@@ -140,4 +142,5 @@ END
 STRINGTABLE 
 BEGIN
     IDP_CANT_UNMOUNT_VOLUME "Can not unmount volume %s\r\nPlease close all applications using this volume and try again."
+    IDP_DEBUG_INFO_COPIED   "Diagnostic information has been copied to the clipboard!"
 END
