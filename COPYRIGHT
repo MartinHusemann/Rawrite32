@@ -9,10 +9,10 @@ All Rawrite32 source files are subject to the following
 license terms:
 
 --8<--
-Copyright (c) 2000-2003,2010 The NetBSD Foundation, Inc.
+Copyright (c) 2000-2003,2010-2018 The NetBSD Foundation, Inc.
 All rights reserved.
 
-Copyright (c) 2000-2003,2010 Martin Husemann <martin@NetBSD.org>.
+Copyright (c) 2000-2003,2010-2018 Martin Husemann <martin@NetBSD.org>.
 Copyright (c) 2010 Izumi Tsutsui <tsutsui@NetBSD.org>
 Copyright (c) 2010 Quentin Garnier <cube@NetBSD.org>
 All rights reserved.
@@ -44,4 +44,4 @@ POSSIBILITY OF SUCH DAMAGE.
 The NetBSD source files have their own license, in short they are either
 BSD licensed or in the public domain.
 
-Zlib and bz2lib have their own licenses as well.
+Zlib, xz and bz2lib have their own licenses as well.
