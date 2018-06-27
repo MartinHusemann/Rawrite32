@@ -511,7 +511,7 @@ void CRawrite32Dlg::CollectDebugInfo() const
       DWORD64 size = (DWORD64)geom.Cylinders.QuadPart * geom.SectorsPerTrack * geom.TracksPerCylinder;
       CString s;
       FormatSize(size, s, geom.BytesPerSector);
-      line += " " + s;
+      line += " [" + s + "]";
     }
     CloseHandle(outputDevice);
     diag += line + "\r\n";
@@ -534,9 +534,24 @@ void CRawrite32Dlg::CollectDebugInfo() const
       STORAGE_DEVICE_NUMBER sdn;
       DWORD bytes = 0;
       if (DeviceIoControl(outputDevice, IOCTL_STORAGE_GET_DEVICE_NUMBER, NULL, 0, &sdn, sizeof sdn, &bytes, NULL)) {
-        CString line;
-        line.Format(_T("%s on %u\r\n"), vol, sdn.DeviceNumber);
-        diag += line;
+        CString line, typeStr, partStr;
+        if (sdn.PartitionNumber != ~0U)
+          partStr.Format(_T(" partition %u"), sdn.PartitionNumber);
+        switch (sdn.DeviceType) {
+        case FILE_DEVICE_CD_ROM:              typeStr = "CD-ROM"; break;
+        case FILE_DEVICE_CD_ROM_FILE_SYSTEM:  typeStr = "CD-ROM file system"; break;
+        case FILE_DEVICE_DISK:                typeStr = "DISK"; break;
+        case FILE_DEVICE_DISK_FILE_SYSTEM:    typeStr = "DISK file system"; break;
+        case FILE_DEVICE_FILE_SYSTEM:         typeStr = "file system"; break;
+        case FILE_DEVICE_NETWORK:             typeStr = "NETWORK"; break;
+        case FILE_DEVICE_NETWORK_FILE_SYSTEM: typeStr = "NETWORK file system"; break;
+        case FILE_DEVICE_TAPE:                typeStr = "TAPE"; break;
+        case FILE_DEVICE_VIRTUAL_DISK:        typeStr = "VIRTUAL DISK"; break;
+        case FILE_DEVICE_MASS_STORAGE:        typeStr = "MASS STORAGE"; break;
+        default:                              typeStr.Format(_T("FILE_DEVICE_#%08x"), sdn.DeviceType); break;
+        }
+        line.Format(_T("%s on %u ("), vol, sdn.DeviceNumber);
+        diag += line + typeStr + partStr + ")\r\n";
       }
       CloseHandle(outputDevice);
     }
