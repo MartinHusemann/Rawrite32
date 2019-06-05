@@ -9,7 +9,7 @@ BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,11,17,21,20
     LTEXT           VERSION_AS_SENTENCE,IDC_STATIC,40,19,188,8,
                     SS_NOPREFIX
-    LTEXT           "Copyright © 2000-2016 Martin Husemann.\r\nAll rights reserved.",
+    LTEXT           "Copyright © 2000-2019 Martin Husemann.\r\nAll rights reserved.",
                     IDC_STATIC,40,30,188,24
     DEFPUSHBUTTON   "OK",IDOK,43,61,66,14,WS_GROUP
     PUSHBUTTON      "Visit homepage",IDC_SURF_HOME,125,61,66,14
@@ -57,7 +57,7 @@ BEGIN
             VALUE "Comments", "see http://www.netbsd.org\0"
             VALUE "FileDescription", "Filesystemimage to disk copy tool\0"
             VALUE "ProductVersion", "Version " VERSION_AS_STRING "\0"
-            VALUE "LegalCopyright", "Copyright © 2000-2016 Martin Husemann.\0"
+            VALUE "LegalCopyright", "Copyright © 2000-2019 Martin Husemann.\0"
             VALUE "LegalTrademarks", "http://www.netbsd.org\0"
             VALUE "OriginalFilename", "Rawrite32.EXE\0"
             VALUE "PrivateBuild", "Use this program to copy NetBSD filesystem images (for boot media) to disks (or other removeable media)\0"
