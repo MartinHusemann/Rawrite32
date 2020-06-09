@@ -3,10 +3,10 @@
 ;General
 
   ;Name and file
-  !define PRODUCT_VERSION		"1.0.7.0"
+  !define PRODUCT_VERSION		"1.0.8.0"
   !define PRODUCT_NAME			"Rawrite32"
   !define PRODUCT_PUBLISHER		"Martin Husemann"
-  !define PRODUCT_URL			"http://www.netbsd.org/~martin/rawrite32"
+  !define PRODUCT_URL			"https://www.netbsd.org/~martin/rawrite32"
   
   !define PRODUCT_UNINSTALL "${PRODUCT_NAME} uninstall"
   !define INSTALLER_EXE_NAME "rw32-setup-${PRODUCT_VERSION}.exe"
