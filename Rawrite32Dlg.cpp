@@ -1,10 +1,10 @@
 /*	$Id$	*/
 
 /*-
- * Copyright (c) 2000-2003,2010-2018 The NetBSD Foundation, Inc.
+ * Copyright (c) 2000-2003,2010-2020 The NetBSD Foundation, Inc.
  * All rights reserved.
  *
- * Copyright (c) 2000-2003,2010-2018 Martin Husemann <martin@duskware.de>.
+ * Copyright (c) 2000-2003,2010-2020 Martin Husemann <martin@duskware.de>.
  * All rights reserved.
  * 
  * This code was developed by Martin Husemann for the benefit of
@@ -521,7 +521,7 @@ void CRawrite32Dlg::CollectDebugInfo() const
   bool firstLogOnPhys = true;
   for (drive = allDrives; *drive; drive += _tcslen(drive)+1) {
     CString internalFileName, vol(drive,2);
-    internalFileName.Format(_T("\\\\.\\%s"), vol);
+    internalFileName.Format(_T("\\\\.\\%s"), (LPCTSTR)vol);
     HANDLE outputDevice = CreateFile(internalFileName, 0, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
     if (outputDevice != INVALID_HANDLE_VALUE) {
 
@@ -550,7 +550,7 @@ void CRawrite32Dlg::CollectDebugInfo() const
         case FILE_DEVICE_MASS_STORAGE:        typeStr = "MASS STORAGE"; break;
         default:                              typeStr.Format(_T("FILE_DEVICE_#%08x"), sdn.DeviceType); break;
         }
-        line.Format(_T("%s on %u ("), vol, sdn.DeviceNumber);
+        line.Format(_T("%s on %u ("), (LPCTSTR)vol, sdn.DeviceNumber);
         diag += line + typeStr + partStr + ")\r\n";
       }
       CloseHandle(outputDevice);
@@ -587,7 +587,7 @@ void CRawrite32Dlg::EnumPhysicalDrives()
     DriveSelectionEntry driveDesc;
     driveDesc.volumes.push_back(volName);
     driveDesc.driveNumber = ~0U;
-    driveDesc.internalFileName.Format(_T("\\\\.\\%s"), volName);
+    driveDesc.internalFileName.Format(_T("\\\\.\\%s"), (LPCTSTR)volName);
 
     CString logName, fsName;
     GetVolumeInformation(drive, logName.GetBuffer(200), 200, NULL, NULL, NULL, fsName.GetBuffer(200), 200);
@@ -656,7 +656,7 @@ void CRawrite32Dlg::EnumPhysicalDrives()
     CString internalFileName, vol(drive,2);
     DWORD type = GetDriveType(drive);
     if (type == DRIVE_CDROM || type == DRIVE_REMOTE || type == DRIVE_RAMDISK) continue;
-    internalFileName.Format(_T("\\\\.\\%s"), vol);
+    internalFileName.Format(_T("\\\\.\\%s"), (LPCTSTR)vol);
     HANDLE outputDevice = CreateFile(internalFileName, 0, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
     if (outputDevice != INVALID_HANDLE_VALUE) {
       STORAGE_DEVICE_NUMBER sdn;
@@ -696,7 +696,7 @@ void CRawrite32Dlg::EnumLogicalVolumes()
       DriveSelectionEntry driveDesc;
       driveDesc.volumes.push_back(volName);
       driveDesc.driveNumber = drive[0] - 'A';
-      driveDesc.internalFileName.Format(_T("\\\\.\\%s"), volName);
+      driveDesc.internalFileName.Format(_T("\\\\.\\%s"), (LPCTSTR)volName);
 
       CString logName, fsName;
       GetVolumeInformation(drive, logName.GetBuffer(200), 200, NULL, NULL, NULL, fsName.GetBuffer(200), 200);
@@ -739,7 +739,7 @@ void CRawrite32Dlg::FillDriveCombo()
     if (m_driveData[i].volumes.empty()) {
       if (m_driveData[i].deviceName.IsEmpty()) {
         CString physString; physString.LoadString(IDS_UNKNOWN_PHYSDEV); 
-        display.Format(_T("%s %u"), physString, m_driveData[i].driveNumber);
+        display.Format(_T("%s %u"), (LPCTSTR)physString, m_driveData[i].driveNumber);
       }
     } else {
       for (size_t j = 0; j < m_driveData[i].volumes.size(); j++) {
@@ -918,7 +918,7 @@ void CRawrite32Dlg::ShowError(DWORD err, UINT id, LPCTSTR arg)
     msg.LoadString(id);
   LPTSTR errStr = NULL;
   FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_IGNORE_INSERTS,NULL,err,0,(LPTSTR)&errStr,1,NULL);
-  CString t; t.Format(_T("%s\r\n[#%u] %s"), msg, err, errStr);
+  CString t; t.Format(_T("%s\r\n[#%u] %s"), (LPCTSTR)msg, err, errStr);
   LocalFree(errStr);
   m_output += t;
   ShowOutput();
@@ -1000,7 +1000,7 @@ void CRawrite32Dlg::OnWriteImage()
   m_drives.GetLBText(ndx, drive);
   internalFileName = m_driveData[ddIndex].internalFileName;
 
-  msg.Format(IDP_ARE_YOU_SURE, drive);
+  msg.Format(IDP_ARE_YOU_SURE, (LPCTSTR)drive);
   if (AfxMessageBox(msg, MB_YESNO|MB_ICONQUESTION, IDP_ARE_YOU_SURE) != IDYES)
     return;
 
@@ -1034,7 +1034,7 @@ void CRawrite32Dlg::OnWriteImage()
       }
     } else {
       for (size_t i = 0; i < m_driveData[ddIndex].volumes.size(); i++) {
-        CString vol; vol.Format(_T("\\\\.\\%s"), m_driveData[ddIndex].volumes[i]);
+        CString vol; vol.Format(_T("\\\\.\\%s"), (LPCTSTR)m_driveData[ddIndex].volumes[i]);
         HANDLE h = CreateFile(vol, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
         if (h != INVALID_HANDLE_VALUE) {
           if (DeviceIoControl(h, FSCTL_IS_VOLUME_MOUNTED, NULL, 0, NULL, 0, &bytes, NULL)) {
@@ -1288,7 +1288,7 @@ write_error:
     CString aMsg, len, hash;
     outHash->HashResult(hash);
     FormatSize(m_sizeWritten, len);
-    aMsg.Format(IDS_SUCCESS, len, outHash->HashName(), hash);
+    aMsg.Format(IDS_SUCCESS, (LPCTSTR)len, outHash->HashName(), (LPCTSTR)hash);
     m_output += aMsg += "\r\n\r\n";
   }
   outHash->Delete();
@@ -1313,7 +1313,7 @@ void CRawrite32Dlg::UpdateWriteProgress()
   CString si, sw, out;
   FormatSize(m_fileOffset, si);
   FormatSize(m_sizeWritten, sw);
-  out.Format(IDS_WRITE_PROGRESS, si, sw);
+  out.Format(IDS_WRITE_PROGRESS, (LPCTSTR)si, (LPCTSTR)sw);
   GetDlgItem(IDC_OUTPUT)->SetWindowText(out);
   Poll();
 }
@@ -1395,7 +1395,7 @@ bool CRawrite32Dlg::OpenInputFile(HANDLE hFile)
     CalcHashes(hashValues);
     CString size;
     FormatSize(m_inputFileSize, size);
-    m_output.Format(IDS_MESSAGE_INPUT_HASHES, m_imageName, size);
+    m_output.Format(IDS_MESSAGE_INPUT_HASHES, (LPCTSTR)m_imageName, (LPCTSTR)size);
     if (hashValues.IsEmpty())
       m_output += "\r\n";
     else

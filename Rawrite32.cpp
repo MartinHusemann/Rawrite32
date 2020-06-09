@@ -1,10 +1,10 @@
 /*	$Id$	*/
 
 /*-
- * Copyright (c) 2000-2003,2010-2018 The NetBSD Foundation, Inc.
+ * Copyright (c) 2000-2003,2010-2020 The NetBSD Foundation, Inc.
  * All rights reserved.
  *
- * Copyright (c) 2000-2003,2010-2018 Martin Husemann <martin@duskware.de>.
+ * Copyright (c) 2000-2003,2010-2020 Martin Husemann <martin@duskware.de>.
  * All rights reserved.
  * 
  * This code was developed by Martin Husemann for the benefit of
@@ -97,11 +97,11 @@ void CRawrite32App::WinHelpInternal(DWORD_PTR /*dwData*/, UINT /*nCmd = HELP_CON
   relUrl.LoadString(IDS_HELP_URL);
   fileName = CString(path) + "/" + relUrl;
   if (GetFileAttributes(fileName) != INVALID_FILE_ATTRIBUTES) {
-    url.Format(_T("file:///%s"), fileName);
+    url.Format(_T("file:///%s"), (LPCTSTR)fileName);
   } else {
     url.LoadString(IDS_HOME_URL);
     url += "/" + relUrl;
   }
-  TRACE(_T("Help URL: %s\n"), url);
+  TRACE(_T("Help URL: %s\n"), (LPCTSTR)url);
   ShellExecute(NULL, _T("open"), url, NULL, NULL, SW_SHOWNORMAL);
 }
