@@ -11,189 +11,6 @@
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
-/////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
-#endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-IDD_RAWRITE32_DIALOG DIALOGEX 0, 0, 368, 173
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-EXSTYLE WS_EX_APPWINDOW
-CAPTION "NetBSD Disk Image Tool"
-// MENU IDR_MAINFRAME
-FONT 8, "MS Sans Serif", 0, 0, 0x1
-BEGIN
-    LTEXT           "Filesystem &image:",IDC_STATIC,7,7,220,10
-    EDITTEXT        IDC_IMAGE_NAME,7,18,243,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "&Open...",IDC_BROWSE,255,18,45,14
-    LTEXT           "Program &messages:",IDC_STATIC,7,36,222,10
-    EDITTEXT        IDC_OUTPUT,7,48,354,100,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
-    CONTROL         "",IDC_PROGRESS,"msctls_progress32",NOT WS_VISIBLE | WS_BORDER | PBS_SMOOTH,7,135,354,13
-    LTEXT           "&Target:",IDC_STATIC,7,152,27,12
-    COMBOBOX        IDC_DRIVES,39,152,242,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "&Write to disk...",IDC_WRITE_DISK,284,151,77,14,WS_DISABLED
-    PUSHBUTTON      "",IDC_HELP_ICON,337,12,21,20,BS_OWNERDRAW
-    PUSHBUTTON      "",IDC_OPTIONS_ICON,310,12,21,20,BS_OWNERDRAW
-END
-
-IDD_HASH_OPTIONS DIALOGEX 0, 0, 215, 192
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Hash options"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    LTEXT           "Rawrite32 calculates hash values over the input image and displays them before writing the image to disk. It also copies these values to the clipboard.",IDC_STATIC,7,7,201,26
-    LTEXT           "This allows you to verify the integrity of the downloaded image, by comparing the results to the published values. NetBSD is using MD5 (for historical reasons) and SHA512 values in recent releases.",IDC_STATIC,7,33,201,34
-    LTEXT           "On a modern multi core CPU you can easily calculate additional hashes in the background without slowing down the overall process. On older machines, additional calculations might cause a noticible delay.",IDC_STATIC,7,69,201,33
-    LTEXT           "Hashes to calculate:",IDC_STATIC,7,108,195,10
-    CONTROL         "",IDC_HASH_TYPE_LIST,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,120,201,46
-    DEFPUSHBUTTON   "OK",IDOK,49,171,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,115,171,50,14
-END
-
-IDD_SEC_SKIP_OPTIONS DIALOGEX 0, 0, 231, 100
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Sector skip"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    LTEXT           "For certain boot media it is necessary to leave the first (few) sectors of the device alone. If you write an image to such media, you need to specify the number of sectors to skip at the beginning of the target device here.",IDC_STATIC,7,7,217,34
-    LTEXT           "Sector s&kip:",IDC_STATIC,32,53,47,12
-    EDITTEXT        IDC_SECTOR_SKIP,84,53,56,12,ES_AUTOHSCROLL
-    LTEXT           "x 512 Byte",IDC_STATIC,145,53,38,12
-    DEFPUSHBUTTON   "OK",IDOK,57,79,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,119,79,50,14
-END
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
-BEGIN
-    IDD_RAWRITE32_DIALOG, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 361
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 166
-    END
-END
-
-GUIDELINES DESIGNINFO 
-BEGIN
-    IDD_SEC_SKIP_OPTIONS, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 224
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 93
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Menu
-//
-
-IDR_MAINFRAME MENU 
-BEGIN
-    POPUP "File"
-    BEGIN
-        MENUITEM "Open...",                 IDC_BROWSE
-        MENUITEM "Exit",                    IDOK
-    END
-    POPUP "Options"
-    BEGIN
-      MENUITEM "Hash options...",           IDD_HASH_OPTIONS
-      MENUITEM "Sector skip...",            IDD_SEC_SKIP_OPTIONS
-      MENUITEM SEPARATOR
-      MENUITEM "Write to logical volumes",  IDM_USE_VOLUMES
-      MENUITEM "Write to physical devices", IDM_USE_PHYSDISKS
-    END
-    POPUP "Help"
-    BEGIN
-      MENUITEM "Rawrite32 Help",            ID_HELP
-      MENUITEM "Visit Homepage",            IDC_SURF_HOME
-      MENUITEM "About Rawrite32...",        IDD_ABOUTBOX
-    END
-END
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-STRINGTABLE 
-BEGIN
-    IDS_ABOUTBOX            "&About Rawrite32..."
-    IDS_OPEN_IMAGE_FILTER   "(Compressed) fs images (*.gz, *.bz2, *.xz, *.fs)|*.gz;*.bz2;*.xz;*.fs|Binary images (*.bin)|*.bin|All files (*.*)|*.*||"
-    IDS_OPEN_IMAGE_TITLE    "Open a file system image"
-    IDS_MESSAGE_INPUT_HASHES "File system image %s (%s)"
-    IDP_ARE_YOU_SURE        "Are you sure you would like to write the loaded image to drive %s ?\r\nATTENTION: this will destroy all contents of the disk in that drive!"
-    IDP_NO_DISK             "Could not access device!\r\nMake sure a medium is inserted and you have administrative privileges."
-    IDP_WRITE_ERROR         "Error writing to disk!"
-    IDS_SUCCESS             "\r\n%s successfully written to disk.\r\n%s hash of output data: %s"
-    IDP_NO_VXD              "Internal error: could not connect to vwin32.vxd!"
-END
-
-STRINGTABLE 
-BEGIN
-    IDS_HOME_URL            "http://www.netbsd.org/~martin/rawrite32"
-    IDS_START_HINT          "Select a filesystem image (and optional a target drive)."
-    IDP_BAD_SKIP            "Illegal sector skip Value!"
-    IDS_HELP_URL            "help/rawrite32-en.htm"
-    IDP_CANT_LOCK_DISK      "Can not lock drive for exclusive access!"
-END
-
-STRINGTABLE 
-BEGIN
-    IDS_CALCULATING_HASHES  "Calculating hashes..."
-END
-
-STRINGTABLE 
-BEGIN
-    IDP_DECOMP_ERROR        "Decompression error - image broken?"
-    IDS_WRITE_PROGRESS      "%s input data processed,\r\n%s written to target disk"
-    IDS_SIZE_BYTE           "Byte"
-    IDS_SIZE_MBYTE          "MByte"
-    IDS_SIZE_GBYTE          "GByte"
-    IDS_SIZE_KBYTE          "KByte"
-    IDS_UNKNOWN_PHYSDEV     "disk device"
-END
-
-STRINGTABLE 
-BEGIN
-    IDP_CANT_UNMOUNT_VOLUME "Can not unmount volume %s\r\nPlease close all applications using this volume and try again."
-END
-
-#endif    // English (U.S.) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// Neutral (Sys. Default) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUSD)
-#ifdef _WIN32
-LANGUAGE LANG_NEUTRAL, SUBLANG_SYS_DEFAULT
-#pragma code_page(1252)
-#endif //_WIN32
-
-#endif    // Neutral (Sys. Default) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -214,6 +31,7 @@ END
 BEGIN
     "#include ""version.h""\r\n"
     "#include ""version.rc2""\r\n"
+    "#include ""lang\\en.rc2""\r\n"
     "#include ""lang\\de.rc2""\r\n"
     "#include ""lang\\fr.rc2""\r\n"
     "#include ""lang\\jp.rc2""\r\n"
@@ -230,6 +48,7 @@ END
 //
 #include "version.h"
 #include "version.rc2"
+#include "lang\en.rc2"
 #include "lang\de.rc2"
 #include "lang\fr.rc2"
 #include "lang\jp.rc2"
