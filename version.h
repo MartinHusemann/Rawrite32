@@ -31,6 +31,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define VERSION_AS_STRING       "1.0.8"
-#define VERSION_AS_RESOURCE     1,0,8,0
-#define VERSION_AS_SENTENCE     "Rawrite32 Version 1.0.8"
+#define VERSION_AS_STRING       "1.0.9"
+#define VERSION_AS_RESOURCE     1,0,9,0
+#define VERSION_AS_SENTENCE     "Rawrite32 Version 1.0.9"
