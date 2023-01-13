@@ -37,7 +37,7 @@
 
 extern "C" {
 #include "NetBSD/namespace.h"
-#include "NetBSD/md5.h"
+#include "NetBSD/sys/md5.h"
 #include "NetBSD/sys/sha1.h"
 #include "NetBSD/sys/sha2.h"
 }

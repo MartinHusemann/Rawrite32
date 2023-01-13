@@ -52,3 +52,36 @@ static __inline void be64enc(unsigned char *out, unsigned __int64 in)
     in >>= 8;
   }
 }
+
+static __inline unsigned __int32 bswap32(unsigned __int32 x)
+{
+  return	((x << 24) & 0xff000000) |
+          ((x << 8) & 0x00ff0000)  |
+          ((x >> 8) & 0x0000ff00)  |
+          ((x >> 24) & 0x000000ff);
+}
+
+static __inline unsigned __int64 htobe64(unsigned __int64 x)
+{
+  /*
+   * Split the operation in two 32bit steps.
+   */
+  unsigned __int32 tl, th;
+  th = bswap32((unsigned __int32)(x & 0x00000000ffffffffULL));
+  tl = bswap32((unsigned __int32)((x >> 32) & 0x00000000ffffffffULL));
+  return ((unsigned __int64)th << 32) | tl;
+}
+
+static __inline unsigned __int32 be32dec(const void *stream)
+{
+  const unsigned char *p = (const unsigned char *)stream;
+
+  return ((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]);
+}
+
+static __inline unsigned __int64 be64dec(const void *stream)
+{
+  const unsigned char *p = (const unsigned char *)stream;
+
+  return (((unsigned __int64)be32dec(p) << 32) | be32dec(p + 4));
+}
