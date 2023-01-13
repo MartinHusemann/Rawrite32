@@ -1,6 +1,6 @@
 To make this source compile you need
 
- - MS Visual Studio 2015
+ - MS Visual Studio 2017
  - some additional files
 
 Get the complete zlib distribution and unpack it in the zlib subdirectory.

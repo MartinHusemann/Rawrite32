@@ -1,8 +1,8 @@
-/*	$NetBSD: md5c.c,v 1.16 2000/01/22 22:19:14 mycroft Exp $	*/
+/*	$NetBSD: md5c.c,v 1.5 2012/03/20 16:21:41 matt Exp $	*/
 
 /*
  * This file is derived from the RSA Data Security, Inc. MD5 Message-Digest
- * Algorithm and has been modifed by Jason R. Thorpe <thorpej@NetBSD.ORG>
+ * Algorithm and has been modified by Jason R. Thorpe <thorpej@NetBSD.org>
  * for portability and formatting.
  */
 
@@ -30,11 +30,14 @@
  */
 
 #if defined(_KERNEL) || defined(_STANDALONE)
-#include <lib/libkern/libkern.h>
 #include <sys/param.h>
 #include <sys/md5.h>
-#define _DIAGASSERT(x)	(void)0
+#include <lib/libkern/libkern.h>
 #else
+#include <sys/cdefs.h>
+#if defined(LIBC_SCCS) && !defined(lint)
+__RCSID("$NetBSD: md5c.c,v 1.5 2012/03/20 16:21:41 matt Exp $");
+#endif /* LIBC_SCCS and not lint */
 #include "namespace.h"
 #include <sys/types.h>
 #include <assert.h>
@@ -42,11 +45,17 @@
 #include <md5.h>
 #endif /* _KERNEL || _STANDALONE */
 
+#if HAVE_NBTOOL_CONFIG_H
+#include "nbtool_config.h"
+#endif
+
+#if !HAVE_MD5_H
+
 #define	ZEROIZE(d, l)		memset((d), 0, (l))
 
 typedef unsigned char *POINTER;
-typedef u_int16_t UINT2;
-typedef u_int32_t UINT4;
+typedef uint16_t UINT2;
+typedef uint32_t UINT4;
 
 /*
  * Constants for MD5Transform routine.
@@ -72,22 +81,22 @@ typedef u_int32_t UINT4;
 __weak_alias(MD5Init,_MD5Init)
 __weak_alias(MD5Update,_MD5Update)
 __weak_alias(MD5Final,_MD5Final)
+__weak_alias(MD5Transform,_MD5Transform)
 #endif
 
-static void MD5Transform __P((UINT4 [4], const unsigned char [64]));
+static void MD5Transform(UINT4 [4], const unsigned char [64]);
 
-static void Encode __P((unsigned char *, UINT4 *, unsigned int));
-static void Decode __P((UINT4 *, const unsigned char *, unsigned int));
+static void Encode(unsigned char *, UINT4 *, unsigned int);
+static void Decode(UINT4 *, const unsigned char *, unsigned int);
 
 /*
  * Encodes input (UINT4) into output (unsigned char).  Assumes len is
  * a multiple of 4.
  */
 static void
-Encode (output, input, len)
-	unsigned char *output;
-	UINT4 *input;
-	unsigned int len;
+Encode (unsigned char *output,
+	UINT4 *input,
+	unsigned int len)
 {
 	unsigned int i, j;
 
@@ -104,10 +113,9 @@ Encode (output, input, len)
  * a multiple of 4.
  */
 static void
-Decode (output, input, len)
-	UINT4 *output;
-	const unsigned char *input;
-	unsigned int len;
+Decode (UINT4 *output,
+	const unsigned char *input,
+	unsigned int len)
 {
 	unsigned int i, j;
 
@@ -167,8 +175,7 @@ static const unsigned char PADDING[64] = {
  * MD5 initialization. Begins an MD5 operation, writing a new context.
  */
 void
-MD5Init(context)
-	MD5_CTX *context;		/* context */
+MD5Init(MD5_CTX *context)
 {
 
 	_DIAGASSERT(context != 0);
@@ -188,10 +195,9 @@ MD5Init(context)
  * context.
  */
 void
-MD5Update(context, input, inputLen)
-	MD5_CTX *context;		/* context */
-	const unsigned char *input;	/* input block */
-	unsigned int inputLen;		/* length of input block */
+MD5Update(MD5_CTX *context,
+	const unsigned char *input,	/* input block */
+	unsigned int inputLen)		/* length of input block */
 {
 	unsigned int i, idx, partLen;
 
@@ -211,9 +217,7 @@ MD5Update(context, input, inputLen)
 
 	/* Transform as many times as possible. */
 	if (inputLen >= partLen) {
-		/* LINTED const castaway ok */
-		memcpy((POINTER)&context->buffer[idx],
-		    (POINTER)input, partLen);
+		memcpy((POINTER)&context->buffer[idx], input, partLen);
 		MD5Transform(context->state, context->buffer);
 
 		for (i = partLen; i + 63 < inputLen; i += 64)
@@ -224,9 +228,7 @@ MD5Update(context, input, inputLen)
 		i = 0;
 
 	/* Buffer remaining input */
-	/* LINTED const castaway ok */
-	memcpy((POINTER)&context->buffer[idx], (POINTER)&input[i],
-	    inputLen - i);
+	memcpy(&context->buffer[idx], &input[i], inputLen - i);
 }
 
 /*
@@ -234,9 +236,8 @@ MD5Update(context, input, inputLen)
  * message digest and zeroing the context.
  */
 void
-MD5Final(digest, context)
-	unsigned char digest[16];	/* message digest */
-	MD5_CTX *context;		/* context */
+MD5Final(unsigned char digest[16],	/* message digest */
+	MD5_CTX *context)		/* context */
 {
 	unsigned char bits[8];
 	unsigned int idx, padLen;
@@ -266,9 +267,7 @@ MD5Final(digest, context)
  * MD5 basic transformation. Transforms state based on block.
  */
 static void
-MD5Transform(state, block)
-	UINT4 state[4];
-	const unsigned char block[64];
+MD5Transform(UINT4 state[4], const unsigned char block[64])
 {
 	UINT4 a = state[0], b = state[1], c = state[2], d = state[3], x[16];
 
@@ -354,3 +353,5 @@ MD5Transform(state, block)
 	/* Zeroize sensitive information. */
 	ZEROIZE((POINTER)(void *)x, sizeof (x));
 }
+
+#endif /* HAVE_MD5_H */
