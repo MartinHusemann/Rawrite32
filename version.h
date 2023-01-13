@@ -1,10 +1,10 @@
 /*	$Id$	*/
 
 /*-
- * Copyright (c) 2000-2003,2010-2020 The NetBSD Foundation, Inc.
+ * Copyright (c) 2000-2003,2010-2023 The NetBSD Foundation, Inc.
  * All rights reserved.
  *
- * Copyright (c) 2000-2003,2010-2020 Martin Husemann <martin@duskware.de>.
+ * Copyright (c) 2000-2003,2010-2023 Martin Husemann <martin@duskware.de>.
  * All rights reserved.
  * 
  * This code was developed by Martin Husemann for the benefit of
@@ -31,6 +31,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define VERSION_AS_STRING       "1.0.9"
-#define VERSION_AS_RESOURCE     1,0,9,0
+#define VERSION_AS_STRING       "1.0.10"
+#define VERSION_AS_RESOURCE     1,0,10,0
 #define VERSION_AS_SENTENCE     "Rawrite32 Version 1.0.9"
