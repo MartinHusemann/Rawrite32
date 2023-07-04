@@ -1,7 +1,7 @@
 To make this source compile you need
 
- - MS Visual Studio 2017
- - some additional files
+ - MS Visual Studio 2017 or newer
+ - some additional files (see below)
 
 Get the complete zlib distribution and unpack it in the zlib subdirectory.
 Get the complete bz2lib distritibution and unpack it in the bz2lib

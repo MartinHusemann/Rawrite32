@@ -1,0 +1,13 @@
+﻿# ignore all visual studio internal files
+/.vs/
+/Rawrite32.vcxproj.user
+
+# ignore all output directories
+/Debug/
+/Release/
+
+# ignore external source directories
+/bz2lib/
+/xz/
+/zlib/
+/NetBSD/
