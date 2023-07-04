@@ -1,5 +1,3 @@
-/*	$Id: Rawrite32Dlg.cpp 18 2010-07-06 23:09:09Z Martin $	*/
-
 /*-
  * Copyright (c) 2000-2003,2010 The NetBSD Foundation, Inc.
  * All rights reserved.
