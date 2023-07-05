@@ -6,6 +6,9 @@
 /Debug/
 /Release/
 
+# ignore the installer
+/rw32-setup-*.exe
+
 # ignore external source directories
 /bz2lib/
 /xz/
