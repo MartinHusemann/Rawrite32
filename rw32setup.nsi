@@ -3,7 +3,7 @@
 ;General
 
   ;Name and file
-  !define PRODUCT_VERSION		"1.0.10.0"
+  !define PRODUCT_VERSION		"1.0.11.0"
   !define PRODUCT_NAME			"Rawrite32"
   !define PRODUCT_PUBLISHER		"Martin Husemann"
   !define PRODUCT_URL			"https://www.netbsd.org/~martin/rawrite32"
