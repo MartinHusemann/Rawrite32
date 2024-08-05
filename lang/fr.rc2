@@ -60,7 +60,7 @@ BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,11,17,21,20
     LTEXT           VERSION_AS_SENTENCE,IDC_STATIC,40,19,188,8,
                     SS_NOPREFIX
-    LTEXT           "Copyright © 2000-2023 Martin Husemann.\r\Tous droits réservés.",
+    LTEXT           "Copyright © 2000-2024 Martin Husemann.\r\Tous droits réservés.",
                     IDC_STATIC,40,30,188,24
     DEFPUSHBUTTON   "OK",IDOK,43,61,66,14,WS_GROUP
     PUSHBUTTON      "Visiter la page d'accueil",IDC_SURF_HOME,125,61,66,14
