@@ -22,7 +22,7 @@ Get the complete zlib distribution http://www.zlib.net/ and unpack it in the zli
 
 Get the complete bz2lib distritibution https://gitlab.com/bzip2/bzip2/ and unpack it in the bz2lib subdirectory (1.0.8 used for latest release binaries).
 
-Get the complete xz distribution http://tukaani.org/xz/ and unpack it in the xz directoy (5.6.2 used for latest release binaries).
+Get the complete xz distribution http://tukaani.org/xz/ and unpack it in the xz directoy (5.8.1 used for latest release binaries).
 
 Be carefull to not overwrite the vxproj files provided with the Rawrite32 distribution.
 
