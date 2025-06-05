@@ -15,7 +15,7 @@ https://NetBSD.org/~martin/rawrite32/
 ## Building
 To make this source compile you need
 
- - MS Visual Studio 2017 or newer
+ - MS Visual Studio 2017 or newer (2022 used for latest release binaries)
  - some additional files (see below)
 
 Get the complete zlib distribution http://www.zlib.net/ and unpack it in the zlib subdirectory (1.3.1 used for latest release binaries).
