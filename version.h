@@ -1,8 +1,8 @@
 /*-
- * Copyright (c) 2000-2003,2010-2024 The NetBSD Foundation, Inc.
+ * Copyright (c) 2000-2003,2010-2025 The NetBSD Foundation, Inc.
  * All rights reserved.
  *
- * Copyright (c) 2000-2003,2010-2024 Martin Husemann <martin@duskware.de>.
+ * Copyright (c) 2000-2003,2010-2025 Martin Husemann <martin@duskware.de>.
  * All rights reserved.
  * 
  * This code was developed by Martin Husemann for the benefit of
