@@ -116,7 +116,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_HOME_URL            "http://www.netbsd.org/~martin/rawrite32"
+    IDS_HOME_URL            "https://www.netbsd.org/~martin/rawrite32"
     IDS_START_HINT          "Wählen Sie eine Quelldatei (und optional ein Ziellaufwerk)."
     IDP_BAD_SKIP            "Ungültiger Start-Sektor-Wert!"
     IDS_HELP_URL            "help/rawrite32-en.htm"

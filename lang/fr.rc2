@@ -116,7 +116,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_HOME_URL            "http://www.netbsd.org/~martin/rawrite32"
+    IDS_HOME_URL            "https://www.netbsd.org/~martin/rawrite32"
     IDS_START_HINT          "Sélectionnez une image disque (et éventuellement un lecteur cible)."
     IDP_BAD_SKIP            "Valeur de saut de secteurs incorrecte !"
     IDS_HELP_URL            "help/rawrite32-en.htm"
